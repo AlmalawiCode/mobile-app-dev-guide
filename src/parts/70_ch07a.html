@@ -1,0 +1,248 @@
+<h1 class="chapter" id="ch7">المفاهيم التي يجب أن تتعلمها، مرتبة حسب مراحل البناء</h1>
+
+<p class="lead">هذا أطول فصل في الدليل، وهو مرجع تعود إليه أكثر من كونه قراءة متصلة. لن أعرّف المفاهيم كقائمة قاموس؛ سأرتبها كما ستقابلها فعلًا وأنت تبني تطبيقًا، في خمس محطات: اللغة، ثم الواجهة، ثم البنية والبيانات، ثم حواف المنصة، ثم الجودة والعمر الطويل. في كل مفهوم ستجد ثلاثة أشياء: <strong>لماذا تحتاجه</strong>، <strong>أين يظهر في تطبيق حقيقي</strong>، و<strong>القرار الذي ستتخذه</strong> بشأنه. الأمثلة بلغة Dart، لكن المفاهيم نفسها تنطبق على Kotlin وSwift وTypeScript.</p>
+
+<h2>المحطة الأولى: اللغة التي تفكّر بها</h2>
+
+<h3>المتغيرات والأنواع</h3>
+<p><strong>لماذا:</strong> كل شيء في التطبيق بيانات تتغير: العدد، اسم الذكر، تاريخ الفاتورة. المتغير اسم لصندوق يحمل قيمة، والنوع يحدد ما الذي يجوز وضعه في الصندوق. Dart لغة ذات أنواع ثابتة: إن قلت إن <code>count</code> عدد صحيح، فلن تستطيع وضع نص فيه، ويكتشف المحلل الخطأ قبل التشغيل لا بعده على هاتف المستخدم.</p>
+<pre><code>int count = 0;                 <span class="cm">// عدد صحيح قابل للتغيير</span>
+final String name = 'سُبْحَانَ الله'; <span class="cm">// يُحدد مرة واحدة عند التشغيل</span>
+const int target = 33;         <span class="cm">// ثابت معروف وقت الترجمة</span>
+double progress = count / target; <span class="cm">// عدد عشري</span>
+bool done = count >= target;   <span class="cm">// صواب/خطأ</span>
+String? note;                  <span class="cm">// علامة ? تعني: قد يكون فارغًا (null)</span></code></pre>
+<p><strong>القرار الأهم في Dart: القابلية للفراغ <span class="en">(null safety)</span>.</strong> علامة الاستفهام تعلن أن القيمة قد تكون غائبة، ويجبرك المحلل على التعامل مع هذا الاحتمال قبل استخدامها. معظم انهيارات تطبيقات المبتدئين في اللغات الأقدم سببها «قيمة فارغة لم يتوقعها أحد». في Dart، الفراغ قرار تعلنه لا حادث تكتشفه. استخدم <code>?</code> فقط حين يكون الغياب معنى حقيقيًا (ملاحظة اختيارية)، لا كطريقة لتأجيل التفكير.</p>
+<p><strong>أين يظهر:</strong> نموذج الفاتورة: <code>DateTime purchaseDate</code> إلزامي، لكن <code>int? warrantyMonths</code> اختياري لأن بعض المشتريات بلا ضمان. هذا القرار في النوع يعني أن شاشة التفاصيل <em>يجب</em> أن تعالج حالة «لا ضمان» صراحةً.</p>
+
+<h3>الدوال</h3>
+<p><strong>لماذا:</strong> الدالة قطعة منطق لها اسم ومدخلات ومخرج. تفيدك في ثلاثة أشياء: إعادة الاستخدام، وإعطاء اسم واضح لعملية معقدة، والاختبار المنفصل. الدالة الجيدة تفعل شيئًا واحدًا ويمكن اختبارها دون تشغيل الواجهة.</p>
+<pre><code><span class="cm">/// هل الضمان ساريًا في تاريخ معيّن؟ دالة نقية: نفس المدخلات تعطي نفس الناتج دائمًا.</span>
+bool isUnderWarranty({
+  required DateTime purchaseDate,
+  required int? warrantyMonths,
+  required DateTime today,
+}) {
+  if (warrantyMonths == null) return false;
+  final expiry = DateTime(purchaseDate.year, purchaseDate.month + warrantyMonths, purchaseDate.day);
+  return !today.isAfter(expiry);
+}</code></pre>
+<p>لاحظ أننا مرّرنا <code>today</code> كمدخل بدل استدعاء <code>DateTime.now()</code> داخل الدالة. لماذا؟ لأن الاختبار يحتاج إلى تثبيت «اليوم» ليعطي نتيجة متوقعة. هذا قرار صغير يعلّمك مبدأً كبيرًا: <strong>الدالة التي تعتمد على شيء خارجي (الوقت، الشبكة، الملفات) يصعب اختبارها؛ مرّر ذلك الشيء إليها.</strong></p>
+
+<h3>الكائنات والأصناف</h3>
+<p><strong>لماذا:</strong> البيانات المترابطة تُجمع في وحدة واحدة. الفاتورة ليست خمسة متغيرات متفرقة، بل «شيء» له اسم وتاريخ وصورة وسلوك (هل ضمانها سارٍ؟). الصنف <span class="en">(class)</span> هو القالب، والكائن <span class="en">(object)</span> نسخة منه.</p>
+<pre><code>class Invoice {
+  const Invoice({
+    required this.id,
+    required this.title,
+    required this.purchaseDate,
+    this.warrantyMonths,
+  });
+
+  final String id;
+  final String title;
+  final DateTime purchaseDate;
+  final int? warrantyMonths;
+
+  bool isUnderWarrantyOn(DateTime today) => isUnderWarranty(
+        purchaseDate: purchaseDate,
+        warrantyMonths: warrantyMonths,
+        today: today,
+      );
+
+  <span class="cm">/// نسخة معدّلة بدل تعديل الأصل: الكائنات غير القابلة للتغيير أسهل تتبعًا.</span>
+  Invoice copyWith({String? title, int? warrantyMonths}) => Invoice(
+        id: id,
+        title: title ?? this.title,
+        purchaseDate: purchaseDate,
+        warrantyMonths: warrantyMonths ?? this.warrantyMonths,
+      );
+}</code></pre>
+<p><strong>القرار:</strong> اجعل نماذج بياناتك <em>غير قابلة للتغيير</em> <span class="en">(immutable)</span> بحقول <code>final</code> ودالة <code>copyWith</code>. حين تتغير الفاتورة، تنشئ نسخة جديدة بدل تعديل القديمة. هذا يمنع فئة كاملة من الأخطاء التي يصعب تتبعها: «من غيّر هذه القيمة ومتى؟».</p>
+
+<h3>القوائم والمجموعات</h3>
+<p><strong>لماذا:</strong> شاشة القائمة في كل تطبيق هي في الحقيقة <code>List</code> من الكائنات معروضة عنصرًا عنصرًا. والخريطة <code>Map</code> تربط مفتاحًا بقيمة، وهي ما استخدمناه لحفظ «معرّف الذكر ← العدد». تعلّم العمليات الأربع الأساسية على القوائم لأنها تظهر في كل مكان:</p>
+<pre><code>final invoices = &lt;Invoice&gt;[...];
+final today = DateTime.now();
+
+final active = invoices.where((i) =&gt; i.isUnderWarrantyOn(today)).toList(); <span class="cm">// تصفية</span>
+final titles = invoices.map((i) =&gt; i.title).toList();                        <span class="cm">// تحويل</span>
+final sorted = [...invoices]..sort((a, b) =&gt; b.purchaseDate.compareTo(a.purchaseDate)); <span class="cm">// ترتيب (على نسخة)</span>
+final byId = {for (final i in invoices) i.id: i};                            <span class="cm">// قائمة ← خريطة</span></code></pre>
+
+<h3>البرمجة غير المتزامنة: العمليات التي تستغرق وقتًا</h3>
+<p><strong>لماذا:</strong> قراءة ملف، أو استعلام قاعدة بيانات، أو طلب من الشبكة، كلها تستغرق وقتًا لا يستطيع التطبيق أن «يقف» في انتظاره، وإلا تجمدت الشاشة ولم تستجب للمس. الحل: تبدأ العملية وتعد بأنها ستنتهي لاحقًا، ويواصل التطبيق رسم الشاشة، ثم حين تنتهي تُستدعى بقية الكود. هذا الوعد في Dart اسمه <code>Future</code>، والكلمتان <code>async</code> و<code>await</code> تجعلانه يُقرأ كأنه كود عادي.</p>
+<pre><code>Future&lt;Map&lt;String, int&gt;&gt; loadCounts() async {
+  final raw = await prefs.getString('counts'); <span class="cm">// انتظر دون تجميد الواجهة</span>
+  if (raw == null) return {};
+  return decode(raw);
+}
+
+<span class="cm">// الأخطاء في العمليات غير المتزامنة تُمسك بنفس الطريقة:</span>
+Future&lt;void&gt; save() async {
+  try {
+    await store.saveCounts(counts);
+  } on FileSystemException catch (e) {
+    log('failed to save: $e'); <span class="cm">// لا تبتلع الخطأ بصمت</span>
+    rethrow;
+  }
+}</code></pre>
+<div class="box note"><span class="bt">مصطلح: الخيط الرئيسي <span class="en">(main/UI thread)</span></span><p>الخيط الذي يرسم الشاشة ويستقبل اللمس. في Flutter، كل كود Dart يعمل عليه افتراضيًا، لذلك يجب ألا تُشغّل عليه حسابًا طويلًا (معالجة صورة كبيرة مثلًا)؛ تلك تنقل إلى <code>Isolate</code> منفصل عبر <code>compute()</code>. أما الانتظار (<code>await</code>) فلا يحجز الخيط، لأنه انتظار وليس عملًا.</p></div>
+<p><strong>أين يظهر:</strong> في كل مكان يلمس الجهاز أو الشبكة: تحميل العدّ المحفوظ عند بدء التطبيق (لهذا كان لدينا مؤشر تحميل في الفصل التاسع)، حفظ صورة الفاتورة، جلب مواقيت الصلاة. <strong>القرار:</strong> ماذا يرى المستخدم أثناء الانتظار؟ مؤشر دائري؟ الشاشة القديمة؟ هيكل رمادي؟ وماذا لو فشل؟ صمّم الحالتين معًا.</p>
+
+<h2>المحطة الثانية: الواجهة التي يلمسها المستخدم</h2>
+
+<h3>واجهة المستخدم كشجرة من الـ Widgets</h3>
+<p><strong>لماذا:</strong> في Flutter كل شيء على الشاشة <span class="en">Widget</span>: النص، الزر، الهامش، العمود، الشاشة كاملة. تركّب الواجهة بتعشيش الـ widgets في شجرة، وFlutter يرسمها. الفكرة الجوهرية التي يجب أن تستقر في ذهنك: <strong>الواجهة دالة من الحالة</strong>. لا تقول «غيّر نص هذا العنصر»، بل تقول «إن كانت الحالة كذا فارسم كذا»، وحين تتغير الحالة يُعاد الرسم.</p>
+<pre><code>Column(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Text(dhikr.text, style: theme.textTheme.headlineMedium),
+    const SizedBox(height: 24),
+    Text('$count', style: theme.textTheme.displayLarge),
+    FilledButton(onPressed: onTap, child: const Text('سَبِّح')),
+  ],
+)</code></pre>
+<p><strong>القرار:</strong> متى تقسّم الشاشة إلى widgets أصغر؟ القاعدة العملية: حين تتجاوز دالة <code>build</code> شاشة واحدة من المحرر، أو حين تتكرر قطعة في مكانين، أو حين تحتاج قطعة إلى حالة خاصة بها. الـ widget الصغير المسمى جيدًا (<code>CounterDisplay</code>، <code>DhikrTile</code>) يقرأه زميلك ويختبره ويعيد استخدامه.</p>
+
+<h3>التنقل بين الشاشات</h3>
+<p><strong>لماذا:</strong> التطبيق ذو الشاشة الواحدة نادر. التنقل يعني إدارة «كومة» من الشاشات: تفتح القائمة فوق شاشة العدّ، وحين تعود تُزال من الكومة. في Flutter الأداة الأساسية هي <code>Navigator</code>:</p>
+<pre><code><span class="cm">// افتح شاشة القائمة فوق الحالية</span>
+Navigator.push(context, MaterialPageRoute&lt;void&gt;(builder: (_) =&gt; const DhikrListScreen()));
+
+<span class="cm">// عد إلى الشاشة السابقة (ويمكن إرجاع قيمة)</span>
+Navigator.pop(context, selectedDhikr);</code></pre>
+<p><strong>القرار:</strong> في التطبيقات الصغيرة (2 إلى 5 شاشات) يكفي <code>Navigator</code> المباشر. حين تحتاج إلى روابط عميقة (<span class="en">deep links</span>: رابط يفتح شاشة محددة)، أو تنقّل بشريط سفلي معقد، أو ويب بعناوين URL، انتقل إلى حزمة <code>go_router</code> (من فريق Flutter). لا تبدأ بالأداة الأعقد قبل أن تحتاجها.</p>
+
+<h3>إدارة الحالة: أهم مفهوم في تطوير الواجهات</h3>
+<p><strong>لماذا:</strong> «الحالة» هي كل بيانات تتغير مع الزمن وتؤثر في ما يُعرض: العدد الحالي، هل القائمة تحمّل، أي عنصر مختار، هل المستخدم مسجّل دخوله. المشكلة ليست في تخزين هذه القيم بل في <strong>إخبار الأجزاء المناسبة من الواجهة حين تتغير</strong>، دون تكرار ودون إعادة رسم كل شيء. الفوضى في إدارة الحالة هي السبب الأول في التطبيقات التي «تعمل أحيانًا».</p>
+<p>هناك نوعان يجب أن تفرّق بينهما منذ اليوم الأول:</p>
+<ul>
+  <li><strong>حالة محلية للـ widget</strong>: هل هذا الحقل مفتوح؟ أي تبويب ظاهر؟ لا يهتم بها أحد غير هذا الـ widget. أداتها: <code>StatefulWidget</code> مع <code>setState</code>.</li>
+  <li><strong>حالة التطبيق</strong>: العدد المحفوظ، قائمة الفواتير، المستخدم الحالي. تحتاجها شاشات متعددة ويجب أن تعيش خارج أي widget بعينه. أداتها في هذا الدليل: صنف يرث <code>ChangeNotifier</code> (يحمل الحالة ويعلن تغيّرها) مع <code>ListenableBuilder</code> (يعيد بناء جزء الواجهة المستمع). هذا ما يعلّمه مسار Flutter الرسمي للمبتدئين، ولا يحتاج إلى حزمة خارجية.</li>
+</ul>
+<pre><code>class CounterController extends ChangeNotifier {
+  int _count = 0;
+  int get count =&gt; _count;
+
+  void increment() {
+    _count++;
+    notifyListeners(); <span class="cm">// أخبر كل من يستمع: الحالة تغيّرت</span>
+  }
+}
+
+<span class="cm">// في الواجهة:</span>
+ListenableBuilder(
+  listenable: controller,
+  builder: (context, _) =&gt; Text('${controller.count}'),
+)</code></pre>
+<table>
+<caption>خيارات إدارة الحالة الشائعة (حالة الحزم بتاريخ 2026-09-27)</caption>
+<thead><tr><th>الخيار</th><th>متى يناسب</th><th>ملاحظة</th></tr></thead>
+<tbody>
+<tr><td><code>setState</code></td><td>حالة محلية لعنصر واحد</td><td>مدمج؛ ابدأ به دائمًا للحالة المحلية</td></tr>
+<tr><td><code>ChangeNotifier</code> + <code>ListenableBuilder</code></td><td>تطبيقات صغيرة ومتوسطة؛ مشروعك الأول</td><td>مدمج؛ توصية مسار التعلم الرسمي</td></tr>
+<tr><td><code>provider</code></td><td>حين تحتاج إلى تمرير الحالة عبر شجرة عميقة دون تمريرها يدويًا</td><td>حزمة Flutter Favorite؛ توصي بها وثائق Flutter لحقن التبعيات</td></tr>
+<tr><td><code>flutter_riverpod</code></td><td>تطبيقات أكبر تريد أمان الأنواع وسهولة الاختبار</td><td>الإصدار 3 حالي ونشط</td></tr>
+<tr><td><code>flutter_bloc</code></td><td>فرق تفضّل فصلًا صارمًا بين الأحداث والحالات</td><td>Flutter Favorite؛ كود أكثر رسمية</td></tr>
+</tbody></table>
+<p><strong>القرار:</strong> ابدأ بـ <code>ChangeNotifier</code>. حين تجد نفسك تمرر المتحكم عبر خمس طبقات من الـ widgets، أضف <code>provider</code>. لا تختر Riverpod أو Bloc في مشروعك الأول لأن مقطع فيديو قال إنها «احترافية»؛ ستتعلم الأداة ولن تتعلم المفهوم. المرجع: <span class="url inline">https://docs.flutter.dev/data-and-backend/state-mgmt/simple</span></p>
+
+<h3>تصميم تجربة المستخدم وإمكانية الوصول</h3>
+<p><strong>لماذا:</strong> تجربة المستخدم <span class="en">(UX)</span> ليست الجمال، بل أن يحقق المستخدم هدفه بأقل جهد وأقل أخطاء. وإمكانية الوصول <span class="en">(accessibility)</span> تعني أن يستطيع استخدام تطبيقك من يرى بصعوبة أو لا يرى، ومن يكبّر خط النظام، ومن يستخدم يدًا واحدة. هذه ليست إضافة أخلاقية فقط؛ المتاجر تفحصها (تقرير ما قبل الإطلاق في Play يتضمن فحص إمكانية الوصول)، والمستخدم الذي يكبّر الخط أكثر مما تظن.</p>
+<p>قواعد عملية تكفي مشروعك الأول:</p>
+<ul>
+  <li><strong>هدف اللمس</strong>: 48×48 dp على الأقل حسب إرشادات Android، و44×44 نقطة حسب إرشادات Apple. زر العدّ في مثالنا يملأ عرض الشاشة عمدًا.</li>
+  <li><strong>التباين</strong>: نسبة 4.5:1 على الأقل للنص العادي (معيار WCAG الذي تتبناه المنصتان).</li>
+  <li><strong>لا تعتمد على اللون وحده</strong>: عند بلوغ الهدف غيّرنا اللون <em>و</em>أضفنا اهتزازًا؛ أضف نصًا أو أيقونة أيضًا لمن لا يميز الألوان.</li>
+  <li><strong>حجم الخط الديناميكي</strong>: اختبر تطبيقك بأكبر حجم خط في إعدادات النظام. النصوص يجب أن تلتف لا أن تُقص أو تخرج من الشاشة.</li>
+  <li><strong>قارئ الشاشة</strong>: كل زر أيقوني يحتاج إلى <code>tooltip</code> أو <code>Semantics(label:)</code> حتى يقرأه TalkBack أو VoiceOver. جرّب تطبيقك بعينين مغمضتين مع TalkBack مرة واحدة على الأقل.</li>
+  <li><strong>اتبع لغة المنصة</strong>: Material 3 على Android (الافتراضي في Flutter منذ 3.16)، وإرشادات Apple <span class="en">(HIG)</span> على iOS. المستخدم يتوقع أن يكون زر الرجوع حيث اعتاده.</li>
+</ul>
+<div class="box official"><span class="bt">المراجع</span>
+<span class="url">https://developer.android.com/guide/topics/ui/accessibility/apps</span>
+<span class="url">https://developer.apple.com/design/human-interface-guidelines/accessibility</span>
+<span class="url">https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html</span>
+<span class="url">https://m3.material.io/</span>
+</div>
+
+<h2>المحطة الثالثة: البنية والبيانات</h2>
+
+<h3>بنية التطبيق: لماذا نفصل الواجهة عن المنطق عن البيانات؟</h3>
+<p><strong>لماذا:</strong> التطبيق الذي يضع كل شيء في ملف <code>main.dart</code> يعمل في الأسبوع الأول ويصبح مستحيل التعديل في الشهر الثاني. البنية <span class="en">(architecture)</span> هي ببساطة اتفاق على «أي نوع من الكود يعيش أين». الاتفاق الذي توصي به وثائق Flutter الرسمية هو نمط <span class="en">MVVM</span> بثلاث طبقات:</p>
+<table>
+<thead><tr><th>الطبقة</th><th>ما تحتويه</th><th>لا يجوز أن</th><th>في مشروع عدّاد الأذكار</th></tr></thead>
+<tbody>
+<tr><td><strong>الواجهة <span class="en">(View)</span></strong></td><td>Widgets ترسم وتستقبل اللمس</td><td>تحتوي منطق عمل أو تلمس التخزين مباشرة</td><td><code>counter_screen.dart</code></td></tr>
+<tr><td><strong>نموذج العرض <span class="en">(ViewModel)</span></strong></td><td>حالة الشاشة والعمليات عليها؛ يعلن التغيير</td><td>يعرف شيئًا عن الـ Widgets</td><td><code>CounterController</code></td></tr>
+<tr><td><strong>البيانات <span class="en">(Repository / Service)</span></strong></td><td>القراءة والكتابة من التخزين أو الشبكة</td><td>تعرف شيئًا عن الشاشات</td><td><code>CounterStore</code> وتنفيذاته</td></tr>
+</tbody></table>
+<p><strong>الفائدة العملية الفورية:</strong> لأن <code>CounterController</code> لا يعرف الـ widgets، اختبرناه في الفصل التاسع بأربعة اختبارات تعمل في أجزاء من الثانية دون تشغيل واجهة. ولأن <code>CounterStore</code> واجهة مجردة، استبدلناه بنسخة في الذاكرة داخل الاختبار. هذا هو معنى «بنية قابلة للاختبار».</p>
+<div class="box note"><span class="bt">مصطلح: حقن التبعيات <span class="en">(Dependency Injection)</span></span><p>بدل أن يُنشئ الصنف الأشياء التي يحتاجها بنفسه (<code>final store = SharedPrefsCounterStore()</code> داخله)، يستقبلها من الخارج عبر المُنشئ. الاسم مخيف والفكرة بسيطة: «لا تصنع أدواتك، خذها ممن يناديك». الفائدة: يمكن تمرير أداة وهمية في الاختبار وأداة حقيقية في التطبيق.</p></div>
+<p><strong>القرار:</strong> لا تنشئ عشرة مجلدات في مشروع من ثلاث شاشات. بنية مشروع صغير:</p>
+<pre><code>lib/
+  main.dart            <span class="cm">// نقطة الدخول: يركّب التبعيات ويشغّل التطبيق</span>
+  models/              <span class="cm">// أصناف بيانات نقية (Dhikr, Invoice)</span>
+  data/                <span class="cm">// التخزين والشبكة (CounterStore, InvoiceRepository)</span>
+  state/               <span class="cm">// المتحكمات / نماذج العرض (ChangeNotifier)</span>
+  screens/             <span class="cm">// شاشة لكل ملف</span>
+  widgets/             <span class="cm">// قطع واجهة مشتركة</span>
+test/                  <span class="cm">// يعكس بنية lib/</span></code></pre>
+<p>المرجع: <span class="url inline">https://docs.flutter.dev/app-architecture/guide</span></p>
+
+<h3>النماذج والتحقق من المدخلات</h3>
+<p><strong>لماذا:</strong> كل بيانات تأتي من الخارج (حقل نصي، ملف، شبكة) مشبوهة حتى تثبت سلامتها. النموذج <span class="en">(Model)</span> يمثّل البيانات <em>الصحيحة</em>، والتحقق <span class="en">(validation)</span> هو الحارس على بابه. القاعدة: <strong>تحقق مبكرًا عند الحدود، وثق بالبيانات في الداخل</strong>.</p>
+<pre><code><span class="cm">/// نتيجة التحقق: إما نجاح بقيمة أو فشل برسالة قابلة للعرض.</span>
+String? validateWarrantyMonths(String input) {
+  if (input.trim().isEmpty) return null;          <span class="cm">// اختياري: فارغ مقبول</span>
+  final n = int.tryParse(input.trim());
+  if (n == null) return 'أدخل عددًا صحيحًا';
+  if (n &lt; 0 || n &gt; 240) return 'المدة يجب أن تكون بين 0 و240 شهرًا';
+  return null;                                     <span class="cm">// null = لا خطأ</span>
+}
+
+<span class="cm">// في Flutter يُستخدم مباشرة مع TextFormField:</span>
+TextFormField(
+  decoration: const InputDecoration(labelText: 'مدة الضمان بالأشهر'),
+  keyboardType: TextInputType.number,
+  validator: validateWarrantyMonths,
+)</code></pre>
+<p>ملاحظات خاصة بالعربية: المستخدم قد يكتب الأرقام بالهندية «١٢» بدل «12»، وقد تُضاف مسافات غير مرئية من لوحة المفاتيح؛ طبّع المدخلات قبل التحقق. والتاريخ يُعرض بالتقويم الميلادي أو الهجري حسب المستخدم، لكنه يُخزَّن دائمًا بصيغة واحدة (ISO 8601 بالتوقيت العالمي).</p>
+
+<h3>التخزين المحلي وقواعد البيانات والعلاقات</h3>
+<p><strong>لماذا:</strong> ما لم يُحفظ على القرص يختفي عند إغلاق التطبيق. لكن «الحفظ» طيف واسع، والقرار بين خياراته من أهم القرارات المبكرة:</p>
+<table>
+<thead><tr><th>الخيار</th><th>يناسب</th><th>لا يناسب</th><th>الحزمة الشائعة (2026-09-27)</th></tr></thead>
+<tbody>
+<tr><td><strong>مفاتيح وقيم بسيطة</strong></td><td>إعدادات، آخر ذكر مختار، عدّاد صغير، «هل رأى المستخدم شاشة الترحيب؟»</td><td>قوائم كبيرة، بحث، علاقات</td><td><code>shared_preferences</code> (Flutter Favorite، من فريق Flutter)</td></tr>
+<tr><td><strong>ملفات</strong></td><td>صور، PDF، نسخ احتياطية، ملفات تصدير</td><td>بيانات تُستعلم أو تُصفّى</td><td><code>path_provider</code> + <code>dart:io</code></td></tr>
+<tr><td><strong>قاعدة بيانات علائقية (SQLite)</strong></td><td>مئات إلى ملايين السجلات، بحث وترتيب وتصفية، علاقات (فاتورة ← صور، فاتورة ← فئة)</td><td>ثلاث قيم بسيطة</td><td><code>sqflite</code> (Favorite) للتحكم المباشر، أو <code>drift</code> (Favorite) لأمان الأنواع والاستعلامات المولّدة</td></tr>
+<tr><td><strong>قواعد كائنات NoSQL محلية</strong></td><td>كائنات سريعة بلا مخطط صارم</td><td>مشاريع تريد استقرارًا طويلًا</td><td><code>hive</code> و<code>isar</code> شائعتان، لكن إصداريهما المستقرين لم يُحدَّثا منذ 2022 و2023؛ <code>hive_ce</code> استمرار مجتمعي نشط. توخَّ الحذر</td></tr>
+</tbody></table>
+<p><strong>العلاقات:</strong> حين تقول «فاتورة واحدة لها عدة صور»، فهذه علاقة «واحد إلى كثير» تُمثَّل في SQLite بجدول <code>images</code> فيه عمود <code>invoice_id</code> يشير إلى الفاتورة. وحين تقول «فاتورة لها عدة وسوم، والوسم على عدة فواتير»، فهذه «كثير إلى كثير» وتحتاج إلى جدول وسيط. تعلّم هذين النمطين ومعهما 80% من نماذج البيانات في التطبيقات الصغيرة.</p>
+<p><strong>قرار غالبًا ما يُهمل: ترحيل المخطط <span class="en">(migration)</span>.</strong> في الإصدار 2 تضيف عمود «الفئة». المستخدم الذي يحدّث من الإصدار 1 لديه قاعدة بيانات بلا هذا العمود. قاعدة البيانات تحتاج إلى رقم إصدار ودالة ترقية تضيف العمود دون مسح بياناته. تجاهل هذا يعني تقييمات نجمة واحدة بعنوان «التحديث مسح كل فواتيري».</p>
+<div class="box tip"><span class="bt">نصيحة شخصية</span><p>ابدأ بـ <code>shared_preferences</code> لأي شيء يمكن تمثيله في أقل من بضعة كيلوبايتات (كما فعلنا في العدّاد، وخزّنا الخريطة كنص JSON واحد). انتقل إلى SQLite حين تحتاج إلى بحث أو ترتيب أو علاقات. ولا تلمس NoSQL المحلي في مشروعك الأول.</p></div>
+
+<h3>واجهات البرمجة والتعامل مع الخادم عند الحاجة</h3>
+<p><strong>لماذا:</strong> حين يحتاج تطبيقك إلى بيانات من الخارج (مواقيت صلاة، أسعار، مزامنة)، يتحدث مع خادم عبر واجهة برمجة <span class="en">(API)</span>: يرسل طلب HTTP إلى عنوان ويستقبل ردًا غالبًا بصيغة JSON. المفاهيم التي يجب أن تعرفها: طرق الطلب (GET للقراءة، POST للإنشاء)، رموز الحالة (200 نجاح، 404 غير موجود، 401 غير مصرّح، 500 خطأ في الخادم)، وتحويل JSON إلى نموذج Dart.</p>
+<pre><code>import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+Future&lt;PrayerTimes&gt; fetchPrayerTimes(double lat, double lng) async {
+  final uri = Uri.https('api.example.com', '/v1/timings', {'lat': '$lat', 'lng': '$lng'});
+  final res = await http.get(uri).timeout(const Duration(seconds: 10));
+  if (res.statusCode != 200) {
+    throw HttpException('server returned ${res.statusCode}');
+  }
+  final json = jsonDecode(res.body) as Map&lt;String, dynamic&gt;;
+  return PrayerTimes.fromJson(json); <span class="cm">// التحقق من الحقول داخل fromJson</span>
+}</code></pre>
+<p><strong>القرارات:</strong> (1) مهلة زمنية دائمًا؛ الشبكة تفشل بصمت. (2) ماذا تعرض حين يفشل الطلب؟ آخر بيانات محفوظة مع تنبيه، لا شاشة خطأ فارغة. (3) لا تضع مفاتيح API سرية داخل التطبيق؛ أي شيء داخل ملف التطبيق يمكن استخراجه. المفتاح السري يعيش على خادمك أنت، والتطبيق يتحدث مع خادمك. (4) استخدم HTTPS فقط؛ المنصتان ترفضان HTTP العادي افتراضيًا.</p>
+
+<h3>المصادقة وإدارة الحسابات، إن احتجت إليها</h3>
+<p><strong>لماذا:</strong> الحساب ضروري فقط حين تحتاج بيانات المستخدم إلى الانتقال بين أجهزة أو إلى الارتباط بهوية (دفع، محتوى خاص). تطبيقاتنا الثلاثة لا تحتاج حسابًا في نسخها الأولى. حين تحتاجه، لا تبنِ نظام مصادقة بنفسك أبدًا في مشروعك الأول؛ استخدم خدمة (Firebase Authentication، Supabase، أو تسجيل الدخول بـ Google/Apple).</p>
+<p><strong>ما يجب أن تعرفه حتى لو استخدمت خدمة:</strong> الفرق بين المصادقة (من أنت؟) والتفويض (ما المسموح لك؟)، وأن الرمز <span class="en">(token)</span> الذي يثبت هويتك يجب أن يُخزَّن في التخزين الآمن للنظام (<code>flutter_secure_storage</code> وأمثالها) لا في <code>shared_preferences</code>، وأن كلا المتجرين يشترط: <strong>إن سمحت بإنشاء حساب فيجب أن تسمح بحذفه من داخل التطبيق</strong>، وGoogle تطلب إضافةً رابط ويب لطلب الحذف. وApple تشترط تقديم «تسجيل الدخول بـ Apple» إن قدّمت تسجيل الدخول بخدمات طرف ثالث أخرى (راجع البند 4.8 من الإرشادات).</p>
+<div class="box official"><span class="bt">متطلب رسمي</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/13327111</span>
+<span class="url">https://developer.apple.com/app-store/review/guidelines/#5.1.1</span>
+</div>

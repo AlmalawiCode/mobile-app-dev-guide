@@ -1,0 +1,177 @@
+<h1 class="chapter" id="ch5">الأدوات وبيئة العمل: مسار الطالب الذي لا يملك Mac</h1>
+
+<p class="lead">هذا الفصل يجيب عن السؤال الذي يمنع كثيرًا من الطلاب من البدء: «أملك جهاز Windows أو Linux وهاتف Android. هل أستطيع فعلًا بناء تطبيق يعمل على iPhone؟». الجواب الصادق: نعم لمعظم الرحلة، بشرط أن تفهم بدقة أين تنتهي قدرات جهازك وتبدأ حاجتك إلى خدمة سحابية أو إلى شخص يملك iPhone. نبدأ بتفكيك «تطوير التطبيق» إلى أربعة أنشطة مختلفة، لأن الجواب يختلف لكل نشاط.</p>
+
+<h2>أربعة أنشطة مختلفة، لا نشاط واحد</h2>
+<table>
+<thead><tr><th>النشاط</th><th>ما معناه</th><th>على Windows/Linux لـ Android</th><th>على Windows/Linux لـ iOS</th></tr></thead>
+<tbody>
+<tr><td><strong>كتابة الكود</strong></td><td>تحرير ملفات Dart، تنظيم المشروع، استخدام Git</td><td class="en">✓ كامل</td><td class="en">✓ كامل</td></tr>
+<tr><td><strong>تشغيل التطبيق واختباره</strong></td><td>رؤية التطبيق يعمل، تجربة اللمس، تصحيح الأخطاء خطوة بخطوة، hot reload</td><td class="en">✓ محاكي + جهاز حقيقي</td><td><span class="badge alarm">✗ محليًا</span> لا محاكي iOS خارج macOS. البدائل: اختبارات آلية على محاكي سحابي، أو TestFlight على iPhone حقيقي، أو استعارة Mac</td></tr>
+<tr><td><strong>بناء ملف الإصدار</strong></td><td>إنتاج <code>.aab</code> أو <code>.ipa</code> موقّع</td><td class="en">✓ محليًا</td><td><span class="badge warn">عبر السحابة</span> Codemagic أو GitHub Actions أو خدمة مماثلة توفر Mac</td></tr>
+<tr><td><strong>النشر</strong></td><td>الرفع إلى المتجر وإدارة صفحته</td><td class="en">✓ من المتصفح</td><td>✓ App Store Connect موقع ويب؛ الرفع نفسه تتولاه خدمة البناء</td></tr>
+</tbody></table>
+
+<div class="box alarm"><span class="bt">القيد الذي لن يزول: محاكي iOS لا يعمل على Windows أو Linux</span><p>محاكي iOS <span class="en">(iOS Simulator)</span> جزء من Xcode، وXcode لا يعمل إلا على macOS. لا توجد طريقة رسمية لتشغيله على Windows أو Linux، وأي أداة تدّعي ذلك إما تشغّل macOS افتراضيًا بما يخالف شروط Apple أو تعرض تطبيقك عن بُعد على Mac حقيقي في مكان آخر. حتى وثائق Codemagic تقول صراحةً إنك ستحتاج إلى Mac إن أردت تصحيح تطبيقك تفاعليًا على محاكي أو جهاز iOS. خطّط على هذا الأساس: طوّر واختبر على Android، وابنِ iOS في السحابة، واختبره على iPhone حقيقي عبر TestFlight بمساعدة زميل إن لم تملك واحدًا.</p></div>
+
+<h2>قائمة الأدوات ودور كل منها</h2>
+<table>
+<thead><tr><th>الأداة</th><th>دورها</th><th>هل هي إلزامية؟</th></tr></thead>
+<tbody>
+<tr><td><strong>Flutter SDK</strong> (ويأتي معه Dart)</td><td>الإطار نفسه: المترجم، أوامر <code>flutter</code>، المكتبات، أدوات البناء</td><td>نعم</td></tr>
+<tr><td><strong>Android Studio</strong></td><td>ثلاثة أشياء في حزمة واحدة: محرر كود، و<span class="en">Android SDK</span> (أدوات بناء Android التي يحتاجها Flutter)، و<span class="en">Android Emulator</span></td><td>SDK إلزامي؛ المحرر اختياري إن استخدمت VS Code؛ المحاكي اختياري إن استخدمت جهازًا حقيقيًا</td></tr>
+<tr><td><strong>VS Code</strong> + إضافة Flutter</td><td>محرر أخف وأسرع بديل عن محرر Android Studio</td><td>اختياري (رأيي: ابدأ به)</td></tr>
+<tr><td><strong>جهاز Android حقيقي</strong></td><td>الاختبار الحقيقي: اللمس، الاهتزاز، الكاميرا، الأداء الفعلي، البطارية</td><td>شبه إلزامي قبل أي نشر</td></tr>
+<tr><td><strong>Git</strong> + <strong>GitHub</strong></td><td>حفظ تاريخ التغييرات والرجوع عنها ومشاركة الكود، وهو ما تقرأ منه خدمة البناء السحابية</td><td>نعم</td></tr>
+<tr><td><strong>Codemagic</strong> (أو GitHub Actions)</td><td>جهاز Mac في السحابة يبني نسخة iOS ويرفعها إلى TestFlight</td><td>حين تريد iOS</td></tr>
+<tr><td><strong>حساب Google Play</strong> و<strong>حساب Apple Developer</strong></td><td>النشر</td><td>حين تريد النشر</td></tr>
+</tbody></table>
+
+<h2>الخطوة 1: تثبيت Flutter SDK</h2>
+<p>الوثائق الرسمية هي المرجع الوحيد الذي يجب أن تتبعه هنا، لأن الخطوات الدقيقة تتغير: <span class="url">https://docs.flutter.dev/install</span></p>
+<p>الفكرة العامة ثابتة: تنزّل مجلد Flutter وتضعه في مسار <strong>لا يحتوي مسافات أو حروفًا خاصة</strong> ولا يحتاج إلى صلاحيات مدير (الوثائق تقترح <code>%USERPROFILE%\develop</code> على Windows و<code>~/develop</code> على Linux)، ثم تضيف مجلد <code>flutter/bin</code> إلى متغير <span class="en">PATH</span> حتى يعمل أمر <code>flutter</code> من أي مكان. على Windows تحتاج إلى Git for Windows مثبّتًا مسبقًا؛ على Linux تحتاج إلى حزم أساسية:</p>
+<pre><code><span class="cm"># Linux (Debian/Ubuntu): الحزم التي تطلبها وثائق Flutter</span>
+sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa</code></pre>
+<p>ثم شغّل الأمر الأهم في حياتك القادمة مع Flutter:</p>
+<pre><code>flutter doctor</code></pre>
+<p><code>flutter doctor</code> يفحص بيئتك ويخبرك بما ينقص: Android SDK غير موجود، تراخيص Android غير مقبولة، لا جهاز متصل. اقرأ مخرجاته سطرًا سطرًا ونفّذ ما يقترحه. حين تطلب المساعدة من زميل أو من أداة ذكاء اصطناعي، أرسل مخرجات <code>flutter doctor -v</code> كاملة؛ هي أول ما سيطلبه أي شخص خبير.</p>
+<div class="box official"><span class="bt">حالة الإصدار (تحقق 2026-09-27)</span><p>أحدث إصدار مستقر من Flutter هو 3.47.5 (صدر 2026-09-18) ويأتي مع Dart 3.13.4. الإصدارات المستقرة تصدر كل بضعة أشهر؛ ثبّت القناة المستقرة <span class="en">(stable)</span> دائمًا. <span class="url inline">https://docs.flutter.dev/release/release-notes</span></p></div>
+
+<h2>الخطوة 2: Android Studio وAndroid SDK والمحاكي</h2>
+<p>حتى لو نويت الكتابة في VS Code، ثبّت Android Studio لأنه أسهل طريقة للحصول على Android SDK وإدارة تحديثاته والمحاكي. من داخل Android Studio، افتح <span class="en">SDK Manager</span> وتأكد من تثبيت: منصة Android الحديثة (API 36 هو ما تطلبه وثائق Flutter حاليًا)، و<span class="en">Build-Tools</span>، و<span class="en">Command-line Tools</span>، و<span class="en">Platform-Tools</span>، و<span class="en">Emulator</span>. ثم اقبل التراخيص:</p>
+<pre><code>flutter doctor --android-licenses</code></pre>
+<div class="box official"><span class="bt">متطلبات النظام (تحقق 2026-09-27)</span><p>أحدث Android Studio المستقر هو <span class="en">Quail 4 | 2026.1.4</span>. الحد الأدنى الرسمي: Windows 64-bit (8/10/11) أو Linux 64-bit بـ glibc 2.31 فأحدث، معالج x86_64 من الجيل الثاني من Intel Core أو أحدث أو AMD يدعم الافتراضية، 8 GB ذاكرة، 8 GB مساحة، شاشة 1280×800. للمحاكي توصي Google بـ 16 GB ذاكرة و16 GB مساحة. <span class="url inline">https://developer.android.com/studio/install</span> <span class="url inline">https://developer.android.com/studio/run/emulator</span></p></div>
+<h3>المحاكي وتسريع العتاد</h3>
+<p>المحاكي بدون تسريع عتادي بطيء إلى درجة لا تُحتمل. التسريع يتطلب تفعيل الافتراضية في BIOS/UEFI (تسمى VT-x عند Intel وSVM أو AMD-V عند AMD). على Windows، الوثائق توصي بـ <span class="en">WHPX</span> (منصة Windows Hypervisor، تُفعَّل من «ميزات Windows»)؛ على Linux، تحتاج إلى <span class="en">KVM</span> وأن يكون مستخدمك في مجموعة <code>kvm</code>. المرجع: <span class="url inline">https://developer.android.com/studio/run/emulator-acceleration</span></p>
+<div class="box tip"><span class="bt">نصيحة شخصية</span><p>إن كان جهازك بذاكرة 8 GB فاستخدم هاتفك الحقيقي بدل المحاكي أساسًا؛ أسرع وأصدق. أنشئ محاكيًا واحدًا فقط بشاشة صغيرة (مثل Pixel 8) لاختبار أحجام شاشات مختلفة عند الحاجة.</p></div>
+
+<h2>الخطوة 3: جهاز Android حقيقي</h2>
+<p>فعّل «خيارات المطوّر» بالنقر سبع مرات على «رقم الإصدار» في إعدادات الهاتف، ثم فعّل <span class="en">USB debugging</span>. وصّل الهاتف بالكابل، واقبل بصمة الحاسوب على شاشة الهاتف، ثم تحقق:</p>
+<pre><code>flutter devices</code></pre>
+<p>يمكن أيضًا التصحيح عبر Wi-Fi (<span class="en">Wireless debugging</span>) على Android 11 فأحدث. الجهاز الحقيقي يكشف ما لا يكشفه المحاكي: الاهتزاز، سطوع الشاشة، حجم الخط الذي كبّره المستخدم، ضعف الشبكة، والأداء على معالج متواضع. <strong>لا تنشر تطبيقًا لم تختبره على جهاز حقيقي واحد على الأقل.</strong></p>
+
+<h2>الخطوة 4: المحرر (VS Code أو Android Studio)</h2>
+<p>كلاهما يعمل جيدًا مع Flutter. VS Code مع إضافة Flutter (تثبّت معها إضافة Dart تلقائيًا) أخف وأسرع بدءًا، وهو ما أرشّحه للطالب. Android Studio أثقل لكنه أقوى في أمور Android الخاصة (تحرير ملفات Gradle، محلل الأداء الأصلي). كلاهما يعطيك: إكمالًا تلقائيًا، وتحذيرات فورية من المحلل، وتصحيحًا خطوة بخطوة، وزر <span class="en">hot reload</span>.</p>
+<div class="box official"><span class="bt">المراجع</span>
+<span class="url">https://docs.flutter.dev/tools/vs-code</span>
+<span class="url">https://docs.flutter.dev/tools/android-studio</span>
+</div>
+<div class="box note"><span class="bt">مصطلح: Hot Reload</span><p>ميزة تجعل Flutter يحقن تعديلك في التطبيق الجاري تشغيله خلال أقل من ثانية دون إعادة تشغيل ودون فقدان الحالة. تعدّل لون زر وتحفظ الملف فترى النتيجة فورًا. هذا يغيّر طريقة التعلم كليًا: جرّب، انظر، عدّل.</p></div>
+
+<h2>الخطوة 5: Git وGitHub</h2>
+<p><span class="en">Git</span> نظام يحفظ «لقطات» من مشروعك عبر الزمن، بحيث تستطيع العودة إلى أي لقطة، ومقارنة ما تغيّر، والعمل مع زملاء دون أن يكتب أحدكم فوق عمل الآخر. <span class="en">GitHub</span> موقع يستضيف نسخة من مستودعك على الإنترنت. خدمات البناء السحابية تقرأ كودك من GitHub (أو GitLab أو Bitbucket)، فهو ليس رفاهية.</p>
+<p>الحد الأدنى الذي تحتاجه من Git في مشروعك الأول، خمسة أوامر:</p>
+<pre><code>git init                          <span class="cm"># مرة واحدة: ابدأ تتبع المجلد</span>
+git add .                         <span class="cm"># اختر كل التغييرات للحفظ</span>
+git commit -m "add counter screen" <span class="cm"># احفظ لقطة بوصف قصير واضح</span>
+git log --oneline                 <span class="cm"># اعرض تاريخ اللقطات</span>
+git push                          <span class="cm"># ارفع اللقطات إلى GitHub</span></code></pre>
+<p>مشروع Flutter الجديد يأتي بملف <code>.gitignore</code> جاهز يستثني ملفات البناء. أضف إليه بنفسك أي ملف يحتوي أسرارًا: <code>key.properties</code>، وملف <code>keystore</code>، ومفاتيح الواجهات البرمجية. القاعدة: <strong>ما رُفع إلى GitHub ولو لثانية، اعتبره منشورًا.</strong></p>
+<div class="box tip"><span class="bt">نصيحة شخصية: متى تحفظ لقطة؟</span><p>كلما أنجزت شيئًا صغيرًا يعمل: «زر العد يعمل»، «الحفظ المحلي يعمل». عشر لقطات صغيرة في اليوم أفضل من لقطة كبيرة في الأسبوع، لأن العودة عن خطأ تصبح سهلة ومحددة. وقبل أن تقبل تغييرًا كبيرًا اقترحه الذكاء الاصطناعي، احفظ لقطة أولًا حتى تستطيع التراجع.</p></div>
+
+<h2>الخطوة 6: بناء iOS في السحابة بـ Codemagic</h2>
+<p><span class="en">Codemagic</span> خدمة تكامل مستمر <span class="en">(CI/CD)</span> متخصصة في تطبيقات الهاتف، توفر أجهزة Mac في السحابة تبني مشروعك من GitHub وتوقّعه وترفعه إلى TestFlight. ليست الخيار الوحيد (انظر البدائل أدناه)، لكنها الأسهل للمبتدئ مع Flutter لأنها تقدّم <span class="en">Workflow Editor</span> مرئيًا لمشاريع Flutter لا يتطلب كتابة ملفات إعداد.</p>
+<div class="box official"><span class="bt">الأسعار والحدود (تحقق 2026-09-27؛ تتغير كثيرًا)</span>
+<ul>
+<li>الحساب الشخصي المجاني: 500 دقيقة بناء شهريًا على أجهزة Mac mini M2، بناء واحد متزامن، عدد غير محدود من التطبيقات، ومدة قصوى للبناء 120 دقيقة. الدقائق المجانية لا تتوفر لحسابات الفرق.</li>
+<li>الدفع حسب الاستخدام: 0.095 دولار للدقيقة على M2، و0.114 على M4، و0.045 على Linux/Windows.</li>
+<li>تعلن Codemagic عن حسابات مجانية للمعلمين والطلاب والمنظمات غير الربحية.</li>
+<li>أجهزة البناء تأتي مع Xcode 26.6 افتراضيًا وXcode 27 كخيار حديث، ما يفي بمتطلب Apple الحالي.</li>
+</ul>
+<span class="url">https://codemagic.io/pricing/</span>
+<span class="url">https://docs.codemagic.io/billing/pricing/</span>
+<span class="url">https://docs.codemagic.io/specs-macos/xcode-26-6/</span>
+</div>
+<p>بناء تطبيق Flutter صغير لـ iOS يستغرق عادةً بين 10 و20 دقيقة على هذه الأجهزة، أي أن 500 دقيقة تكفي لنحو 25 إلى 50 بناءً شهريًا. هذا يعني شيئًا مهمًا في طريقة عملك: <strong>لا تبنِ iOS مع كل تعديل</strong>. طوّر واختبر على Android محليًا، وابنِ iOS عند معالم واضحة فقط.</p>
+
+<h3>ما الذي تحتاجه قبل أول بناء iOS؟</h3>
+<ol>
+  <li><strong>حساب Apple Developer مدفوع</strong> (99 دولارًا سنويًا). لا توجد طريقة حول هذا للوصول إلى TestFlight أو App Store.</li>
+  <li><strong>مفتاح App Store Connect API</strong>: من App Store Connect ← <span class="en">Users and Access</span> ← <span class="en">Integrations</span> ← <span class="en">App Store Connect API</span>، أنشئ مفتاحًا (توصي وثائق Codemagic بصلاحية <span class="en">App Manager</span>). ستحصل على ثلاثة أشياء: <span class="en">Issuer ID</span>، و<span class="en">Key ID</span>، وملف <code>.p8</code> <strong>يمكن تنزيله مرة واحدة فقط</strong>. احفظه في مدير كلمات مرور.</li>
+  <li><strong>معرّف التطبيق <span class="en">(Bundle ID)</span></strong> مسجّلًا في حساب Apple، وسجل التطبيق منشأً في App Store Connect.</li>
+  <li><strong>مستودع GitHub</strong> يحتوي مشروعك، متصلًا بحساب Codemagic.</li>
+</ol>
+<p>بعد ذلك، مع التوقيع التلقائي، تقول وثائق Codemagic حرفيًا إنها «ستنشئ الشهادة وملف التزويد نيابةً عنك دون الحاجة إلى Mac». هذه هي النقطة التي كانت مستحيلة قبل سنوات وأصبحت روتينية اليوم.</p>
+<div class="box official"><span class="bt">المراجع</span>
+<span class="url">https://docs.codemagic.io/flutter-code-signing/ios-code-signing/</span>
+<span class="url">https://docs.codemagic.io/yaml-code-signing/signing-ios/</span>
+<span class="url">https://developer.apple.com/help/app-store-connect/get-started/app-store-connect-api</span>
+</div>
+
+<h3>مثال ملف codemagic.yaml مبسّط</h3>
+<p>حين تتجاوز محرر سير العمل المرئي، تكتب ملفًا باسم <code>codemagic.yaml</code> في جذر المشروع. هذا مثال توضيحي مبني على وثائق Codemagic الرسمية وقت إعداد الدليل؛ راجع صفحة البدء السريع لأحدث صيغة قبل الاستخدام:</p>
+<pre><code>workflows:
+  ios-testflight:
+    name: iOS to TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: my-asc-key   <span class="cm"># اسم المفتاح كما أضفته في إعدادات الفريق</span>
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: sa.edu.kau.students.dhikr
+      flutter: stable
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Set up signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          xcode-project use-profiles
+      - name: Build ipa
+        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true</code></pre>
+<p>اقرأ الملف كقصة: على جهاز Mac mini M2، بمفتاح App Store Connect المسجّل، جهّز ملفات التوقيع (وأنشئها إن لم توجد)، ثم ابنِ ملف ipa، واحتفظ به، وارفعه إلى TestFlight. المرجع: <span class="url inline">https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/</span></p>
+
+<h3>وماذا عن Android في السحابة؟</h3>
+<p>Android لا يحتاج إلى السحابة لأنك تبنيه محليًا. لكن يمكن أتمتة رفعه إلى Google Play أيضًا عبر حساب خدمة من Google Cloud. تنبيه من وثائق Codemagic: <strong>أول نسخة من التطبيق يجب أن تُرفع يدويًا</strong> إلى Play Console قبل أن تعمل الأتمتة.</p>
+
+<h2>بدائل Codemagic</h2>
+<table>
+<thead><tr><th>الخدمة</th><th>الملخص</th><th>التكلفة للمبتدئ (تحقق 2026-09-27)</th></tr></thead>
+<tbody>
+<tr><td><strong>GitHub Actions</strong></td><td>عام (ليس خاصًا بالهاتف)؛ يوفر أجهزة macOS (<code>macos-15</code>، <code>macos-26</code>) لكنك تكتب كل شيء بنفسك وتدير التوقيع يدويًا أو عبر أدوات مثل fastlane</td><td>2,000 دقيقة شهريًا للمستودعات الخاصة في الخطة المجانية؛ المستودعات العامة مجانية على الأجهزة القياسية. دقيقة macOS تُسعَّر بـ 0.062 دولار مقابل 0.006 لـ Linux، أي أن دقائق Mac تستهلك الرصيد أسرع بكثير</td></tr>
+<tr><td><strong>Xcode Cloud</strong></td><td>خدمة Apple نفسها؛ 25 ساعة حوسبة شهريًا مشمولة في عضوية المطوّر</td><td>مشمول، لكن <strong>إعداد أول سير عمل يجب أن يتم من Xcode على Mac</strong>؛ بعدها تُدار من App Store Connect على الويب. غير مناسب لمن لا يملك Mac إطلاقًا</td></tr>
+<tr><td><strong>Bitrise</strong></td><td>خدمة CI للهاتف مشابهة</td><td>خطة Hobby مجانية بتطبيق خاص واحد و300 رصيد شهريًا</td></tr>
+<tr><td><strong>استئجار Mac عن بُعد</strong> (MacStadium وأمثالها)</td><td>جهاز Mac حقيقي تتصل به عن بُعد؛ يعطيك Xcode والمحاكي كاملين</td><td>يبدأ من نحو 109 دولارات شهريًا لـ Mac mini M2 لدى MacStadium. مكلف للطالب، لكنه الخيار الوحيد للتصحيح التفاعلي دون شراء Mac</td></tr>
+</tbody></table>
+<div class="box official"><span class="bt">المراجع</span>
+<span class="url">https://docs.github.com/en/billing/reference/actions-runner-pricing</span>
+<span class="url">https://developer.apple.com/xcode-cloud/</span>
+<span class="url">https://developer.apple.com/documentation/xcode/configuring-your-first-xcode-cloud-workflow</span>
+<span class="url">https://bitrise.io/pricing</span>
+<span class="url">https://macstadium.com/pricing</span>
+</div>
+
+<h2>كيف تختبر iOS فعلًا دون Mac؟ خطة واقعية</h2>
+<ol>
+  <li><strong>الاختبارات الآلية على محاكي سحابي</strong>: Codemagic يستطيع تشغيل اختبارات التكامل على iOS Simulator داخل أجهزته. تكتب الاختبار مرة وتشغّله على المنصتين في السحابة.</li>
+  <li><strong>TestFlight على iPhone حقيقي</strong>: ابنِ في السحابة، ارفع إلى TestFlight، وادعُ زميلًا يملك iPhone كمختبر داخلي. اطلب منه لقطات شاشة وتسجيل شاشة لكل شاشة في التطبيق، وخصوصًا: الحواف السفلية والعلوية (النتوء والمؤشر)، لوحة المفاتيح العربية، الوضع الداكن، وحجم الخط الكبير.</li>
+  <li><strong>الاعتماد على تطابق Flutter</strong>: لأن Flutter يرسم واجهته بنفسه، فمعظم مشكلات iOS ستكون في «حواف» المنصة: الأذونات، الإشعارات، الملفات، الحفظ في الخلفية. ركّز اختبارك هناك.</li>
+  <li><strong>جلسة Mac مستعارة عند الحاجة</strong>: قبل النشر الأول، ساعة واحدة على Mac زميل أو معمل الجامعة لتشغيل التطبيق على المحاكي ورؤية الأخطاء في وحدة التحكم تساوي أيامًا من التخمين.</li>
+</ol>
+
+<h2>قائمة تحقق: بيئتك جاهزة حين…</h2>
+<ul class="checklist">
+  <li><code>flutter doctor</code> يظهر علامة صح على Flutter وAndroid toolchain والمحرر (تحذير Xcode طبيعي ومتوقع على Windows/Linux).</li>
+  <li><code>flutter create hello && cd hello && flutter run</code> يشغّل التطبيق الافتراضي على المحاكي أو على هاتفك.</li>
+  <li>تعديل نص في <code>lib/main.dart</code> وحفظه يظهر فورًا بفضل hot reload.</li>
+  <li>لديك مستودع GitHub خاص للمشروع، وأول <code>git push</code> نجح.</li>
+  <li>تعرف مكان ملف <code>.gitignore</code> وما الذي يستثنيه.</li>
+  <li>(لاحقًا، عند الحاجة إلى iOS) حساب Apple Developer نشط، ومفتاح App Store Connect API محفوظ في مكان آمن، وحساب Codemagic متصل بالمستودع.</li>
+</ul>
+
+<h2>خلاصة الفصل</h2>
+<ul>
+  <li>فكّك «التطوير» إلى كتابة وتشغيل وبناء ونشر. على Windows/Linux تملك الأربعة كاملة لـ Android، وثلاثة منها لـ iOS، والرابع (التشغيل التفاعلي على iOS) يحتاج إلى Mac أو iPhone حقيقي عبر TestFlight.</li>
+  <li>Flutter SDK وAndroid Studio (من أجل SDK والمحاكي) وGit هي الأساس؛ VS Code محرر مريح اختياري.</li>
+  <li>Codemagic يبني iOS ويوقّعه ويرفعه إلى TestFlight دون Mac، بحصة مجانية شهرية تكفي الطالب إن استخدمها بحكمة.</li>
+  <li>الأسرار (keystore، مفاتيح API) لا تدخل Git ولا تُعطى لأداة ذكاء اصطناعي.</li>
+</ul>

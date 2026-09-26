@@ -1,0 +1,137 @@
+<h1 class="chapter" id="ch2">Android وiOS والمتاجر</h1>
+
+<p class="lead">حين يقول شخص «أريد تطبيقًا على iPhone»، فهو يتحدث في الواقع عن أربعة أشياء مختلفة: جهاز، ونظام تشغيل، ومتجر، وحساب مطوّر. الخلط بينها هو سبب معظم الأسئلة المحيّرة مثل «لماذا أحتاج إلى Mac؟» أو «لماذا لا أستطيع إرسال ملف التطبيق لصديقي على iPhone كما أفعل على Android؟». هذا الفصل يفكك الأربعة.</p>
+
+<h2>الجهاز، ونظام التشغيل، والمتجر: ثلاث طبقات</h2>
+<table>
+<thead><tr><th>الطبقة</th><th>في عالم Google</th><th>في عالم Apple</th><th>دورها</th></tr></thead>
+<tbody>
+<tr><td><strong>الجهاز</strong></td><td>هواتف Samsung وXiaomi وPixel وغيرها من مئات الشركات</td><td>iPhone وiPad من Apple فقط</td><td>العتاد: شاشة ومعالج وكاميرا ومستشعرات.</td></tr>
+<tr><td><strong>نظام التشغيل</strong></td><td><span class="en">Android</span> (مفتوح المصدر، تعدّله كل شركة)</td><td><span class="en">iOS</span> (مغلق، من Apple فقط)</td><td>يدير العتاد ويشغّل التطبيقات ويفرض الصلاحيات.</td></tr>
+<tr><td><strong>المتجر</strong></td><td><span class="en">Google Play</span> (وتوجد متاجر أخرى مثل Galaxy Store، ويمكن التثبيت المباشر)</td><td><span class="en">App Store</span> (القناة الوحيدة عمليًا لعامة المستخدمين خارج الاتحاد الأوروبي)</td><td>يوزّع التطبيقات ويراجعها ويتولى الدفع والتحديث.</td></tr>
+<tr><td><strong>بوابة المطوّر</strong></td><td><span class="en">Google Play Console</span></td><td><span class="en">App Store Connect</span></td><td>حيث ترفع تطبيقك وتكتب وصفه وتدير الاختبار والإصدارات.</td></tr>
+</tbody></table>
+
+<p>لاحظ الفرق الجوهري: Android <em>يسمح</em> بتثبيت ملف تطبيق مباشرة من خارج المتجر (يسمى <span class="en">sideloading</span>)، لذا تستطيع بناء ملف <code>.apk</code> وإرساله إلى صديق فيثبّته بعد تأكيد تحذير أمني. أما iOS، فلا يشغّل إلا تطبيقات موقّعة بشهادة تعترف بها Apple، ويصل التطبيق إلى المستخدم العادي إما عبر App Store أو عبر TestFlight (قناة الاختبار الرسمية). هذا القيد هو السبب الحقيقي وراء كثير من «تعقيدات» iOS التي ستقابلها.</p>
+
+<h2>أرقام الإصدارات: أي Android وأي iOS ستدعم؟</h2>
+<p>كل نظام يصدر إصدارًا رئيسيًا سنويًا تقريبًا. Android يرقّم إصداراته بأرقام (Android 16، Android 17) ولكل إصدار «مستوى واجهة برمجة» <span class="en">(API level)</span> هو الرقم الذي يهم المطوّر فعلًا (Android 16 = API 36، وAndroid 17 = API 37). iOS يرقّم إصداراته ببساطة (iOS 26، iOS 27).</p>
+<p>ستقابل مصطلحين مهمين:</p>
+<ul>
+  <li><strong>الحد الأدنى المدعوم <span class="en">(minSdk / Deployment Target)</span></strong>: أقدم إصدار يستطيع تثبيت تطبيقك. كلما خفضته وصلت إلى أجهزة أكثر لكن حُرمت من ميزات أحدث واضطررت إلى اختبار أوسع.</li>
+  <li><strong>الإصدار المستهدف <span class="en">(targetSdk / SDK المستخدم في البناء)</span></strong>: الإصدار الذي تعلن أنك اختبرت تطبيقك عليه، والمتاجر تفرض حدًا أدنى له يرتفع كل عام.</li>
+</ul>
+<div class="box official"><span class="bt">متطلب رسمي (تحقق 2026-09-27)</span>
+<ul>
+<li><strong>Google Play</strong>: ابتداءً من 31 أغسطس 2026، يجب أن تستهدف التطبيقات الجديدة والتحديثات Android 16 (API 36) أو أحدث، مع إمكانية طلب تمديد حتى 1 نوفمبر 2026. التطبيقات القائمة يجب أن تستهدف API 35 على الأقل لتبقى متاحة للمستخدمين الجدد على الأجهزة الأحدث.<br><span class="url">https://support.google.com/googleplay/android-developer/answer/11926878</span></li>
+<li><strong>Google Play</strong>: منذ 1 نوفمبر 2025، التطبيقات الجديدة والتحديثات التي تستهدف Android 15 فأعلى يجب أن تدعم أحجام صفحات الذاكرة 16 KB على أجهزة 64-bit. Flutter الحديث يبني هذا الدعم افتراضيًا، لكن الحزم التي تتضمن كودًا أصليًا قديمًا قد تحتاج إلى تحديث.<br><span class="url">https://developer.android.com/guide/practices/page-sizes</span></li>
+<li><strong>App Store</strong>: منذ 28 أبريل 2026، يجب أن تُبنى التطبيقات المرفوعة إلى App Store Connect بـ Xcode 26 وSDK iOS 26 أو أحدث. وأعلنت Apple أن التطبيقات المرفوعة ابتداءً من أبريل 2027 يجب أن تُبنى بـ SDK iOS 27.<br><span class="url">https://developer.apple.com/news/upcoming-requirements/</span></li>
+<li><strong>Flutter 3.47</strong> يدعم Android من API 24 (Android 7.0) حتى API 37، وiOS من 15 حتى 27.<br><span class="url">https://docs.flutter.dev/reference/supported-platforms</span></li>
+</ul></div>
+<p>الدرس العملي: <strong>المتطلبات تتحرك سنويًا</strong>. لا تحفظ الأرقام؛ احفظ الرابط، وافتحه قبل كل إصدار. حين تستخدم Flutter وأدوات بناء محدّثة، يُضبط معظم هذه القيم تلقائيًا، لكن التطبيق الذي يُهمل عامًا كاملًا سيكتشف يوم التحديث أن المتجر يرفضه.</p>
+
+<h2>حساب المطوّر: بطاقة دخولك إلى المتجر</h2>
+<p>لا تستطيع رفع تطبيق إلى أي من المتجرين دون حساب مطوّر مدفوع. الحساب مرتبط بهويتك القانونية، والمتجر يعرض بعض بياناتك للجمهور.</p>
+<table>
+<caption>حسابا المطوّر (تحقق 2026-09-27)</caption>
+<thead><tr><th></th><th>Google Play Console</th><th>Apple Developer Program</th></tr></thead>
+<tbody>
+<tr><td>الرسوم</td><td>25 دولارًا أمريكيًا، تُدفع مرة واحدة</td><td>99 دولارًا أمريكيًا سنويًا</td></tr>
+<tr><td>التسجيل</td><td>عبر الويب من أي جهاز</td><td>عبر الويب أو تطبيق Apple Developer على iPhone/iPad. لا تشترط Apple جهاز Mac للتسجيل نفسه</td></tr>
+<tr><td>التحقق من الهوية</td><td>هوية حكومية وبطاقة ائتمانية باسمك، وتحقق من الهاتف والبريد. الحسابات الشخصية الجديدة يجب أن تثبت وصولها إلى جهاز Android عبر تطبيق Play Console</td><td>صورة هوية ضمن التسجيل. المؤسسات تحتاج إلى رقم D-U-N-S</td></tr>
+<tr><td>ما يُعرض للجمهور</td><td>الاسم القانوني والدولة والبريد. إن حقّقت دخلًا عُرض عنوانك الكامل</td><td>اسم المطوّر أو المؤسسة</td></tr>
+<tr><td>قيد خاص بالمبتدئين</td><td>الحسابات الشخصية المنشأة بعد 13 نوفمبر 2023 يجب أن تُجري اختبارًا مغلقًا بـ 12 مختبرًا على الأقل مشتركين باستمرار 14 يومًا قبل أن يُسمح لها بالنشر في الإنتاج</td><td>الحساب المجاني يسمح بتشغيل تطبيقك على جهازك عبر Xcode فقط (ينتهي التوقيع بعد 7 أيام)، دون TestFlight أو App Store</td></tr>
+<tr><td>إعفاء من الرسوم</td><td>لا يوجد</td><td>للمؤسسات غير الربحية والتعليمية والحكومية، ليس للأفراد</td></tr>
+</tbody></table>
+<div class="box official"><span class="bt">المصادر</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/6112435</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/14151465</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/13628312</span>
+<span class="url">https://developer.apple.com/support/enrollment/</span>
+<span class="url">https://developer.apple.com/support/compare-memberships/</span>
+<span class="url">https://developer.apple.com/support/membership-fee-waiver/</span>
+</div>
+<div class="box warn"><span class="bt">انتبه: شرط الـ 12 مختبرًا</span><p>هذا الشرط يفاجئ كثيرًا من الطلاب. إن أنشأت حساب Google Play شخصيًا جديدًا، فلن تستطيع النشر العام قبل أن يبقى 12 شخصًا على الأقل مشتركين في اختبارك المغلق 14 يومًا متواصلة، ثم تقدّم طلبًا للوصول إلى الإنتاج. خطّط لهذا مبكرًا: مجموعتكم الطلابية هي المكان المثالي لتبادل الاختبار.</p></div>
+
+<h2>ملفات البناء: ما الذي ترفعه فعلًا؟</h2>
+<p>حين تكتب أمر البناء، تنتج أدوات التطوير ملفًا واحدًا (أو أكثر) يحتوي على الكود المترجم والصور والخطوط والإعدادات. هذه الملفات هي ما يُوقَّع ويُرفع:</p>
+<table>
+<thead><tr><th>الملف</th><th>المنصة</th><th>ما هو</th><th>متى تستخدمه</th></tr></thead>
+<tbody>
+<tr><td><code>.apk</code></td><td>Android</td><td>حزمة تطبيق كاملة قابلة للتثبيت مباشرة على الجهاز</td><td>الاختبار السريع، الإرسال المباشر لمختبر، المتاجر البديلة</td></tr>
+<tr><td><code>.aab</code></td><td>Android</td><td><span class="en">Android App Bundle</span>: حزمة «خام» يولّد منها Google Play ملفات APK مخصصة لكل جهاز (أصغر حجمًا)</td><td>الرفع إلى Google Play. مطلوب للتطبيقات الجديدة منذ أغسطس 2021</td></tr>
+<tr><td><code>.ipa</code></td><td>iOS</td><td>حزمة تطبيق iOS موقّعة</td><td>الرفع إلى App Store Connect / TestFlight</td></tr>
+<tr><td><code>.xcarchive</code></td><td>iOS</td><td>أرشيف البناء الذي يُستخرج منه الـ ipa، ويحتوي على رموز تصحيح الأخطاء</td><td>يُنتج على Mac أو خدمة بناء سحابية</td></tr>
+</tbody></table>
+<div class="box official"><span class="bt">متطلب رسمي</span><p>Google Play يشترط رفع التطبيقات الجديدة بصيغة App Bundle. <span class="url inline">https://developer.android.com/guide/app-bundle</span></p></div>
+
+<h2>توقيع التطبيق: لماذا، وبأي مفتاح؟</h2>
+<p>التوقيع الرقمي يجيب عن سؤال النظام: «هل هذا التحديث من صاحب التطبيق الأصلي نفسه؟». لو استطاع أي شخص إنتاج ملف يحمل اسم تطبيقك، لاستطاع استبدال تطبيقك على أجهزة المستخدمين بنسخة خبيثة. لذلك يُوقَّع كل ملف بمفتاح خاص، ويرفض النظام تثبيت تحديث موقّع بمفتاح مختلف.</p>
+<h3>على Android</h3>
+<p>هناك مفتاحان يجب أن تفرّق بينهما:</p>
+<ul>
+  <li><strong>مفتاح توقيع التطبيق <span class="en">(app signing key)</span></strong>: المفتاح الذي تُوقَّع به النسخ التي تصل إلى أجهزة المستخدمين. لا يتغير طوال عمر التطبيق. في التطبيقات الجديدة، Google تحتفظ به وتديره عبر <span class="en">Play App Signing</span> (إلزامي).</li>
+  <li><strong>مفتاح الرفع <span class="en">(upload key)</span></strong>: مفتاح تُنشئه أنت وتحتفظ به في ملف <span class="en">keystore</span>، وتوقّع به الملف قبل رفعه إلى Play Console. إن فقدته يمكنك طلب إعادة تعيينه من Google، لكن ذلك يستغرق وقتًا.</li>
+</ul>
+<div class="box alarm"><span class="bt">احتفظ بملف keystore وكلمة مروره في مكان آمن ومنفصل عن المشروع</span><p>لا ترفعه إلى GitHub أبدًا. ولا تعطِه لأداة ذكاء اصطناعي. النسخة الاحتياطية الوحيدة في حاسوب واحد ليست نسخة احتياطية. المرجع: <span class="url inline">https://developer.android.com/studio/publish/app-signing</span></p></div>
+<h3>على iOS</h3>
+<p>نظام Apple أكثر طبقات، وستقابل ثلاث كلمات:</p>
+<ul>
+  <li><strong>الشهادة <span class="en">(Certificate)</span></strong>: تثبت هويتك كمطوّر. شهادة تطوير لتشغيل التطبيق على أجهزتك، وشهادة توزيع لرفعه إلى App Store.</li>
+  <li><strong>معرّف التطبيق <span class="en">(App ID / Bundle ID)</span></strong>: اسم فريد على نمط <code>sa.edu.kau.students.dhikr</code> يعرّف تطبيقك لدى Apple.</li>
+  <li><strong>ملف التزويد <span class="en">(Provisioning Profile)</span></strong>: يربط الشهادة بمعرّف التطبيق (وبقائمة أجهزة في حالة التطوير) ويأذن بتشغيل هذا التطبيق تحديدًا.</li>
+</ul>
+<p>الخبر الجيد: خدمات البناء السحابية مثل Codemagic تستطيع إنشاء الشهادة وملف التزويد نيابةً عنك باستخدام مفتاح واجهة App Store Connect، دون Mac. سنفعل ذلك في الفصل الخامس. المرجع الرسمي للمفاهيم: <span class="url inline">https://developer.apple.com/help/account/certificates/certificates-overview/</span></p>
+
+<h2>أرقام الإصدارات: اسم للناس ورقم للنظام</h2>
+<p>كل تطبيق يحمل قيمتين: <strong>اسم إصدار</strong> يقرؤه المستخدم مثل <code>1.2.0</code>، و<strong>رقم بناء</strong> داخلي يقارن به النظام والمتجر لمعرفة أي نسخة أحدث. في Flutter تكتب الاثنين في سطر واحد داخل <code>pubspec.yaml</code>:</p>
+<pre><code>version: 1.2.0+7   <span class="cm"># 1.2.0 هو اسم الإصدار، و7 هو رقم البناء</span></code></pre>
+<p>على Android يصبحان <code>versionName</code> و<code>versionCode</code>، وعلى iOS <code>CFBundleShortVersionString</code> و<code>CFBundleVersion</code>. القاعدة الوحيدة الصارمة: <strong>رقم البناء يجب أن يزيد في كل رفع</strong>، وإلا رفضه المتجر. اصطلاح <span class="en">Semantic Versioning</span> الشائع لاسم الإصدار: الرقم الأول لتغييرات كبيرة، والثاني لميزات جديدة، والثالث لإصلاحات.</p>
+<div class="box official"><span class="bt">متطلب رسمي</span><p>Android: versionCode عدد صحيح موجب يجب أن يزيد مع كل إصدار، وأقصى قيمة يقبلها Google Play هي 2100000000. <span class="url inline">https://developer.android.com/studio/publish/versioning</span></p></div>
+
+<h2>المسار العام للنشر والاختبار والتحديث</h2>
+<p>المسار متشابه في المتجرين، مع اختلاف الأسماء:</p>
+<ol>
+  <li><strong>إنشاء سجل التطبيق</strong> في البوابة: الاسم، الفئة، اللغة الافتراضية.</li>
+  <li><strong>البناء والتوقيع</strong>: إنتاج <code>.aab</code> أو <code>.ipa</code> موقّع.</li>
+  <li><strong>الرفع إلى مسار اختبار</strong>: على Google Play: اختبار داخلي (حتى 100 مختبر)، ثم مغلق، ثم مفتوح. على Apple: TestFlight (حتى 100 مختبر داخلي و10,000 خارجي، وتنتهي صلاحية النسخة بعد 90 يومًا).</li>
+  <li><strong>استكمال صفحة المتجر</strong>: الوصف، لقطات الشاشة، الأيقونة، سياسة الخصوصية، تصنيف المحتوى، ونموذج أمان البيانات (Play) أو تفاصيل الخصوصية (Apple).</li>
+  <li><strong>المراجعة</strong>: Apple تقول إن 90% من الطلبات تُراجع في أقل من 24 ساعة. Google تقول إن بعض الحسابات قد تستغرق مراجعتها 7 أيام أو أكثر في حالات استثنائية.</li>
+  <li><strong>الإصدار</strong>: فوري، أو مجدول، أو تدريجي لنسبة من المستخدمين.</li>
+  <li><strong>التحديث</strong>: زيادة رقم البناء، بناء جديد، رفع، وربما مراجعة مختصرة. التحديثات المنشورة لا يمكن «سحبها» من الأجهزة التي ثبّتتها؛ يمكنك فقط إيقاف الطرح أو نشر إصلاح.</li>
+</ol>
+<div class="box official"><span class="bt">المصادر</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/9845334</span>
+<span class="url">https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview</span>
+<span class="url">https://developer.apple.com/distribute/app-review/</span>
+<span class="url">https://support.google.com/googleplay/android-developer/answer/9859751</span>
+</div>
+
+<h2>اختبارات ما قبل النشر التي يجريها المتجر</h2>
+<p>Google Play يشغّل تلقائيًا <span class="en">Pre-launch report</span> عند رفع أي حزمة: يثبّت التطبيق على أجهزة مختبره، ويتجول فيه دقائق، ويبلّغ عن الانهيارات ومشكلات التوافق والأداء وإمكانية الوصول. اقرأ هذا التقرير؛ كثيرًا ما يكشف انهيارًا على جهاز لم تملكه قط. Apple لا تقدّم تقريرًا مماثلًا قبل المراجعة، لكن مراجعة أول نسخة TestFlight خارجية تمر على App Review.</p>
+
+<h2>ما الثابت وما المتغير؟</h2>
+<div class="grid2">
+<div class="box"><span class="bt">ثابت (افهمه مرة)</span><ul>
+<li>الفصل بين الجهاز والنظام والمتجر والحساب.</li>
+<li>فكرة التوقيع ولماذا لا يتغير مفتاح التطبيق.</li>
+<li>اسم الإصدار للناس ورقم البناء للنظام.</li>
+<li>مسار: بناء ← اختبار ← صفحة متجر ← مراجعة ← إصدار ← تحديث.</li>
+<li>iOS لا يشغّل إلا تطبيقات موقّعة تعترف بها Apple.</li>
+</ul></div>
+<div class="box warn"><span class="bt">متغير (راجعه قبل كل نشر)</span><ul>
+<li>الرسوم وشروط التحقق من الهوية.</li>
+<li>الحد الأدنى لـ targetSdk وSDK iOS.</li>
+<li>نماذج الخصوصية والبيانات ومتطلبات حذف الحساب.</li>
+<li>عدد المختبرين ومدد الاختبار.</li>
+<li>أحجام الصور المطلوبة لصفحة المتجر.</li>
+</ul></div>
+</div>
+
+<h2>خلاصة الفصل</h2>
+<ul>
+  <li>Android نظام مفتوح على أجهزة كثيرة يسمح بالتثبيت المباشر؛ iOS نظام مغلق على أجهزة Apple لا يشغّل إلا الموقَّع رسميًا.</li>
+  <li>حساب Google Play بـ 25 دولارًا مرة واحدة، وحساب Apple بـ 99 دولارًا سنويًا، وكلاهما يتطلب التحقق من الهوية.</li>
+  <li>ترفع <code>.aab</code> إلى Play و<code>.ipa</code> إلى App Store Connect، وكلاهما موقّع بمفاتيح يجب أن تحميها.</li>
+  <li>المتطلبات التقنية للمتاجر تتغير سنويًا؛ احفظ الروابط لا الأرقام.</li>
+</ul>

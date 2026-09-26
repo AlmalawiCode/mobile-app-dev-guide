@@ -1,0 +1,10 @@
+# خط Haradh مملوك لأرامكو السعودية ولا يُعاد توزيعه هنا؛ ضع ملفاته محليًا في docs/fonts لاستخدامه في البناء.
+docs/fonts/*.otf
+docs/fonts/*.ttf
+# Flutter
+example_dhikr_counter/.dart_tool/
+example_dhikr_counter/build/
+example_dhikr_counter/.idea/
+example_dhikr_counter/pubspec.lock
+__pycache__/
+*.pyc

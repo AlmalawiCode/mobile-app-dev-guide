@@ -1,0 +1,632 @@
+<h1 class="chapter" id="ch9">المشروع التطبيقي: عدّاد أذكار خطوة خطوة</h1>
+
+<p class="lead">في هذا الفصل تبني تطبيقًا كاملًا بيديك عبر عشر مراحل، كل مرحلة تنتهي بشيء يعمل على شاشتك ولقطة Git. الكود الوارد هنا ليس مقتطفات نظرية: هو مشروع حقيقي جُمِّع بـ Flutter 3.41 واجتاز <code>flutter analyze</code> بلا ملاحظات و7 اختبارات آلية أثناء إعداد هذا الدليل. المشروع الكامل مرفق مع الدليل في مجلد <code>example_dhikr_counter</code>. لكن لا تنسخه دفعة واحدة؛ اكتبه مرحلة مرحلة كما هو مرتب، فالهدف أن تفهم <em>لماذا</em> تنمو الفكرة بهذا الترتيب، لا أن تحصل على تطبيق.</p>
+
+<div class="box warn"><span class="bt">قبل أن تبدأ</span><p>تأكد أن <code>flutter doctor</code> راضٍ عن بيئتك (الفصل الخامس)، وأن هاتفك أو المحاكي يظهر في <code>flutter devices</code>. وأنشئ مستودع Git من اللحظة الأولى.</p></div>
+
+<div class="stage">
+<h3>المرحلة 1: صياغة الفكرة والنطاق الأول</h3>
+<p>لن نكتب كودًا. نأخذ نموذج المتطلبات من الفصل السادس ونثبّت النطاق الأول بجملة واحدة: <strong>«شاشة عدّ واحدة بذكر ثابت، زر كبير يزيد العدد، تصفير مع تأكيد، والعدد يبقى بعد إغلاق التطبيق».</strong> لا قائمة، لا إحصاءات، لا إشعارات. اكتب هذه الجملة في ملف <code>README.md</code> في مجلد المشروع مع قائمة «مؤجّل» تضع فيها كل فكرة تخطر لك أثناء العمل بدل تنفيذها.</p>
+<p><strong>لماذا هذا النطاق؟</strong> لأنه يجبرنا على المرور بالمفاهيم الأربعة الأساسية (واجهة، حالة، تخزين، حالات غير معتادة) في أصغر شكل ممكن. كل ما سيأتي بعده توسيع لا تأسيس.</p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 2: رسم الشاشات وتحديد التنقل</h3>
+<p>على ورقة: مستطيل بنسبة الهاتف. في الأعلى شريط عنوان فيه «عدّاد الأذكار» وزرّان أيقونيان (قائمة، تصفير). في الوسط نص الذكر، تحته الرقم كبيرًا جدًا، تحته «الهدف: 33». في الأسفل زر يملأ العرض بارتفاع كبير مكتوب عليه «سَبِّح». مستطيل ثانٍ لشاشة القائمة: قائمة عمودية، كل صف فيه نص الذكر وهدفه، وعلامة صح أمام المختار. سهم من زر القائمة إلى الشاشة الثانية، وسهم عودة من أي صف إلى الأولى.</p>
+<p>ثلاثة قرارات تخرج من الرسم فورًا: (1) الزر في أسفل الشاشة حيث يصل الإبهام بيد واحدة؛ (2) الرقم هو أكبر عنصر لأنه ما يُقرأ من بعيد؛ (3) شاشة القائمة تُفتح فوق شاشة العدّ وتُغلق بالاختيار، فلا نحتاج إلى تنقل معقد.</p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 3: بناء الواجهة الأساسية (ثابتة)</h3>
+<p>أنشئ المشروع. اسم الحزمة <span class="en">(org)</span> يصبح جزءًا من معرّف التطبيق في المتجرين ويصعب تغييره لاحقًا، فاختره بعناية على نمط نطاق معكوس:</p>
+<pre><code>flutter create --project-name dhikr_counter --org sa.edu.kau.students --platforms android,ios dhikr_counter
+cd dhikr_counter
+git init && git add . && git commit -m "flutter create"</code></pre>
+<p>احذف محتوى <code>lib/main.dart</code> الافتراضي واكتب شاشة ثابتة لا تفعل شيئًا. الهدف الوحيد: رؤية الشكل على الشاشة والتأكد أن حلقة التطوير (تعديل ← حفظ ← hot reload) تعمل.</p>
+<pre><code>import 'package:flutter/material.dart';
+
+/// المرحلة 3: واجهة ثابتة بلا أي منطق. الهدف: رؤية الشكل على الشاشة أولًا.
+class StaticCounterScreen extends StatelessWidget {
+  const StaticCounterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('عدّاد الأذكار')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('سُبْحَانَ الله', style: TextStyle(fontSize: 28)),
+          const SizedBox(height: 16),
+          const Text('0', style: TextStyle(fontSize: 72)),
+          const SizedBox(height: 32),
+          FilledButton(
+            onPressed: () {}, // لا يفعل شيئًا بعد
+            child: const Text('سَبِّح'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+</code></pre>
+<p>واستدعها من <code>main</code> مؤقتًا:</p>
+<pre><code>void main() => runApp(const MaterialApp(home: StaticCounterScreen()));</code></pre>
+<p>شغّل <code>flutter run</code>. غيّر حجم الخط واحفظ؛ يجب أن ترى التغيير خلال ثانية. <strong>لقطة Git:</strong> <code>git commit -am "static counter screen"</code>.</p>
+<p><strong>ما تعلمته:</strong> <code>Scaffold</code> هيكل الشاشة (شريط علوي + جسم)، <code>Column</code> يرصّ الأبناء عموديًا، <code>SizedBox</code> مسافة، و<code>const</code> أمام الـ widgets الثابتة تحسين مجاني.</p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 4: جعل زر العدّ يعمل وإدارة حالة العدّاد</h3>
+<p>الآن أول «حالة» حقيقية. الرقم لم يعد ثابتًا؛ يتغير مع كل نقرة. في Flutter، الـ widget الذي يحمل حالة متغيرة هو <code>StatefulWidget</code>، ودالة <code>setState</code> تخبر Flutter بأن يعيد الرسم:</p>
+<pre><code>import 'package:flutter/material.dart';
+
+/// المرحلة 4: أول "حالة" حقيقية. StatefulWidget + setState.
+class SimpleCounterScreen extends StatefulWidget {
+  const SimpleCounterScreen({super.key});
+
+  @override
+  State&lt;SimpleCounterScreen&gt; createState() =&gt; _SimpleCounterScreenState();
+}
+
+class _SimpleCounterScreenState extends State&lt;SimpleCounterScreen&gt; {
+  int _count = 0; // الحالة: قيمة تتغير مع الزمن وتؤثر في ما يُعرض
+
+  void _increment() {
+    // setState تخبر Flutter: "الحالة تغيّرت، أعد بناء هذه الشاشة".
+    setState(() =&gt; _count++);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('عدّاد الأذكار')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('$_count', style: const TextStyle(fontSize: 72)),
+          const SizedBox(height: 32),
+          FilledButton(onPressed: _increment, child: const Text('سَبِّح')),
+        ],
+      ),
+    );
+  }
+}
+</code></pre>
+<p>شغّل وانقر. الرقم يزيد. انقر بسرعة عشرين مرة: هل ضاعت نقرات؟ (لا؛ Flutter يعالج اللمسات بالتسلسل). أدر الشاشة: <strong>الرقم عاد إلى الصفر؟</strong> لا، لأن حالة الـ widget تبقى عند الدوران. لكن أغلق التطبيق تمامًا وافتحه: الرقم صفر. هذه هي مشكلة المرحلة التالية.</p>
+<p><strong>لقطة Git.</strong> <strong>ما تعلمته:</strong> الفرق بين <code>StatelessWidget</code> (يرسم من مدخلاته فقط) و<code>StatefulWidget</code> (يملك حالة تتغير)، وأن <code>setState</code> لا «تغيّر النص» بل تعلن أن الحالة تغيّرت فيُعاد بناء الواجهة من الحالة الجديدة.</p>
+<div class="box warn"><span class="bt">انتبه: لماذا لن نبقى على setState؟</span><p><code>setState</code> ممتازة للحالة المحلية. لكن العدد الآن يحتاج إلى الحفظ (طبقة بيانات) وستحتاجه شاشة القائمة لاحقًا (شاشة أخرى). حالة تحتاجها أكثر من شاشة وتلمس التخزين هي «حالة تطبيق»، ومكانها خارج الـ widget. لذلك سنعيد التنظيم في المرحلة التالية قبل أن يكبر الكود، لا بعده.</p></div>
+</div>
+
+<div class="stage">
+<h3>المرحلة 5: حفظ العدّاد محليًا واستعادته عند فتح التطبيق</h3>
+<p>هنا نبني البنية التي ستحمل بقية المشروع: نموذج، ومخزن مجرّد بتنفيذين، ومتحكم يحمل الحالة. نضيف حزمة التخزين البسيط:</p>
+<pre><code>flutter pub add shared_preferences</code></pre>
+<p><strong>أولًا النموذج</strong> <code>lib/models/dhikr.dart</code>. نكتبه الآن رغم أننا ما زلنا بذكر واحد، لأن «العدد» يخص ذكرًا ما، والمعرّف الثابت سيسمح لنا بحفظ عدد لكل ذكر لاحقًا دون تغيير صيغة التخزين:</p>
+<pre><code>/// نموذج (Model) يمثّل ذِكرًا واحدًا في القائمة.
+/// النموذج "غبي" عمدًا: يحمل البيانات فقط ولا يعرف شيئًا عن الشاشات أو التخزين.
+class Dhikr {
+  const Dhikr({required this.id, required this.text, required this.target});
+
+  /// معرّف ثابت لا يتغير حتى لو عدّلنا النص لاحقًا.
+  final String id;
+
+  /// نص الذكر كما يظهر للمستخدم.
+  final String text;
+
+  /// العدد المستهدف (مثل 33 أو 100).
+  final int target;
+}
+
+/// قائمة مبدئية مضمّنة في التطبيق. في مرحلة لاحقة يمكن نقلها إلى ملف JSON
+/// أو السماح للمستخدم بإضافة أذكاره الخاصة.
+const List&lt;Dhikr&gt; defaultAdhkar = [
+  Dhikr(id: 'subhanallah', text: 'سُبْحَانَ الله', target: 33),
+  Dhikr(id: 'alhamdulillah', text: 'الْحَمْدُ لله', target: 33),
+  Dhikr(id: 'allahuakbar', text: 'اللهُ أَكْبَر', target: 34),
+  Dhikr(id: 'istighfar', text: 'أَسْتَغْفِرُ الله', target: 100),
+  Dhikr(id: 'hawqala', text: 'لا حَوْلَ وَلا قُوَّةَ إِلَّا بِالله', target: 100),
+];
+</code></pre>
+<p><strong>ثانيًا طبقة البيانات</strong> <code>lib/data/counter_store.dart</code>. لاحظ ثلاثة قرارات: عقد مجرّد <code>CounterStore</code> حتى نستبدل التخزين في الاختبار؛ التخزين كخريطة «معرّف ← عدد» في نص JSON واحد لأن البيانات صغيرة؛ ومعالجة البيانات التالفة من الآن (سنعود إليها في المرحلة 7):</p>
+<pre><code>import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// عقد (واجهة مجرّدة) يصف ما نحتاجه من "مخزن العدّادات" دون تحديد كيفية التخزين.
+/// فائدة العقد: يمكن استبدال التخزين الحقيقي بنسخة في الذاكرة أثناء الاختبار.
+abstract class CounterStore {
+  /// يُرجع خريطة: معرّف الذكر -&gt; العدد المحفوظ.
+  Future&lt;Map&lt;String, int&gt;&gt; loadCounts();
+
+  /// يحفظ الخريطة كاملة. الحجم صغير جدًا فلا حاجة لقاعدة بيانات هنا.
+  Future&lt;void&gt; saveCounts(Map&lt;String, int&gt; counts);
+}
+
+/// تنفيذ حقيقي يعتمد على حزمة shared_preferences.
+/// نخزّن الخريطة كنص JSON واحد تحت مفتاح واحد.
+class SharedPrefsCounterStore implements CounterStore {
+  SharedPrefsCounterStore([SharedPreferencesAsync? prefs])
+      : _prefs = prefs ?? SharedPreferencesAsync();
+
+  final SharedPreferencesAsync _prefs;
+  static const _key = 'dhikr_counts_v1';
+
+  @override
+  Future&lt;Map&lt;String, int&gt;&gt; loadCounts() async {
+    final raw = await _prefs.getString(_key);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return {};
+      // نتحقق من نوع كل قيمة: أي قيمة تالفة تُهمل بدل أن تُسقط التطبيق.
+      return {
+        for (final entry in decoded.entries)
+          if (entry.value is int &amp;&amp; (entry.value as int) &gt;= 0)
+            entry.key.toString(): entry.value as int,
+      };
+    } on FormatException {
+      // بيانات تالفة (مثلًا من إصدار قديم): نبدأ من الصفر بدل الانهيار.
+      return {};
+    }
+  }
+
+  @override
+  Future&lt;void&gt; saveCounts(Map&lt;String, int&gt; counts) {
+    return _prefs.setString(_key, jsonEncode(counts));
+  }
+}
+
+/// تنفيذ في الذاكرة فقط، للاختبارات وللتجربة السريعة.
+class InMemoryCounterStore implements CounterStore {
+  final Map&lt;String, int&gt; _data = {};
+
+  @override
+  Future&lt;Map&lt;String, int&gt;&gt; loadCounts() async =&gt; Map.of(_data);
+
+  @override
+  Future&lt;void&gt; saveCounts(Map&lt;String, int&gt; counts) async {
+    _data
+      ..clear()
+      ..addAll(counts);
+  }
+}
+</code></pre>
+<p><strong>ثالثًا المتحكم</strong> <code>lib/state/counter_controller.dart</code>. يرث <code>ChangeNotifier</code>، يحمل الحالة، ويحفظ بعد كل تغيير. لا يعرف شيئًا عن الـ widgets:</p>
+<pre><code>import 'package:flutter/foundation.dart';
+
+import '../data/counter_store.dart';
+import '../models/dhikr.dart';
+
+/// "عقل" الشاشة: يحمل الحالة (الذكر الحالي وعدّه) ويبلّغ الواجهة عند تغيّرها.
+/// لا يعرف شيئًا عن الـ Widgets، لذا يمكن اختباره دون تشغيل واجهة.
+class CounterController extends ChangeNotifier {
+  CounterController({required CounterStore store, List&lt;Dhikr&gt;? adhkar})
+      : _store = store,
+        adhkar = adhkar ?? defaultAdhkar;
+
+  final CounterStore _store;
+  final List&lt;Dhikr&gt; adhkar;
+
+  Map&lt;String, int&gt; _counts = {};
+  Dhikr? _current;
+  bool _loaded = false;
+
+  bool get isLoaded =&gt; _loaded;
+  Dhikr get current =&gt; _current ?? adhkar.first;
+  int get count =&gt; _counts[current.id] ?? 0;
+  bool get reachedTarget =&gt; count &gt;= current.target;
+
+  /// يُستدعى مرة واحدة عند فتح التطبيق لاستعادة ما حُفظ سابقًا.
+  Future&lt;void&gt; load() async {
+    _counts = await _store.loadCounts();
+    _loaded = true;
+    notifyListeners();
+  }
+
+  void selectDhikr(Dhikr dhikr) {
+    _current = dhikr;
+    notifyListeners();
+  }
+
+  /// يزيد العدّاد ويحفظ. نحفظ بعد كل نقرة لأن الكتابة صغيرة ورخيصة،
+  /// ولأن المستخدم قد يغلق التطبيق في أي لحظة.
+  Future&lt;void&gt; increment() async {
+    _counts[current.id] = count + 1;
+    notifyListeners();
+    await _store.saveCounts(_counts);
+  }
+
+  Future&lt;void&gt; reset() async {
+    _counts.remove(current.id);
+    notifyListeners();
+    await _store.saveCounts(_counts);
+  }
+}
+</code></pre>
+<p><strong>لماذا نحفظ بعد كل نقرة</strong> لا عند الخروج؟ لأن الأنظمة تقتل التطبيقات في الخلفية دون إنذار، ولا يوجد حدث «قبل الإغلاق» موثوق على الهاتف. الكتابة هنا بضع مئات من البايتات ولا تُلاحظ. في تطبيق يحفظ صورًا كبيرة كان القرار سيختلف (حفظ عند اكتمال الإدخال).</p>
+<p><strong>رابعًا نقطة الدخول</strong> <code>lib/main.dart</code>: نُنشئ التبعيات في مكان واحد ونمرّرها للأسفل (هذا هو حقن التبعيات بأبسط صوره). السطور الخاصة باللغة سنشرحها في المرحلة 9، اتركها الآن كما هي:</p>
+<pre><code>import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'data/counter_store.dart';
+import 'screens/counter_screen.dart';
+import 'state/counter_controller.dart';
+
+void main() {
+  // نُنشئ التبعيات في مكان واحد (نقطة الدخول) ونمرّرها للأسفل.
+  final controller = CounterController(store: SharedPrefsCounterStore());
+  controller.load();
+  runApp(DhikrApp(controller: controller));
+}
+
+class DhikrApp extends StatelessWidget {
+  const DhikrApp({super.key, required this.controller});
+
+  final CounterController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'عدّاد الأذكار',
+      debugShowCheckedModeBanner: false,
+      // اللغة العربية افتراضيًا: يضبط اتجاه العرض RTL ونصوص عناصر Material الجاهزة.
+      locale: const Locale('ar'),
+      supportedLocales: const [Locale('ar'), Locale('en')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF315B45),
+        useMaterial3: true,
+      ),
+      home: CounterScreen(controller: controller),
+    );
+  }
+}
+</code></pre>
+<p>وستكتب شاشة العدّ الجديدة في المرحلة التالية مع القائمة. مؤقتًا، بدّل <code>StaticCounterScreen</code> بنسخة تقرأ من المتحكم عبر <code>ListenableBuilder</code>. اختبر: عدّ، أغلق التطبيق تمامًا (اسحبه من قائمة التطبيقات الأخيرة)، افتح: العدد باقٍ. <strong>لقطة Git.</strong></p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 6: إضافة قائمة أذكار بسيطة</h3>
+<p>البنية جاهزة، فالإضافة الآن صغيرة: شاشة قائمة تعرض <code>controller.adhkar</code>، والنقر على صف يستدعي <code>selectDhikr</code> ويعود. أنشئ <code>lib/screens/dhikr_list_screen.dart</code>:</p>
+<pre><code>import 'package:flutter/material.dart';
+
+import '../state/counter_controller.dart';
+
+class DhikrListScreen extends StatelessWidget {
+  const DhikrListScreen({super.key, required this.controller});
+
+  final CounterController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('اختر ذكرًا')),
+      body: ListView.separated(
+        itemCount: controller.adhkar.length,
+        separatorBuilder: (context, index) =&gt; const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final dhikr = controller.adhkar[index];
+          final selected = dhikr.id == controller.current.id;
+          return ListTile(
+            title: Text(dhikr.text),
+            subtitle: Text('الهدف: ${dhikr.target}'),
+            trailing: selected ? const Icon(Icons.check) : null,
+            selected: selected,
+            onTap: () {
+              controller.selectDhikr(dhikr);
+              Navigator.pop(context);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+</code></pre>
+<p>ثم شاشة العدّ الكاملة <code>lib/screens/counter_screen.dart</code>، وفيها أيضًا حوار تأكيد التصفير ومؤشر التحميل والاهتزاز (المرحلة 7 تشرح تلك الأجزاء):</p>
+<pre><code>import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../state/counter_controller.dart';
+import 'dhikr_list_screen.dart';
+
+class CounterScreen extends StatelessWidget {
+  const CounterScreen({super.key, required this.controller});
+
+  final CounterController controller;
+
+  Future&lt;void&gt; _confirmReset(BuildContext context) async {
+    final ok = await showDialog&lt;bool&gt;(
+      context: context,
+      builder: (context) =&gt; AlertDialog(
+        title: const Text('تصفير العدّاد؟'),
+        content: const Text('سيبدأ العدّ من الصفر لهذا الذكر.'),
+        actions: [
+          TextButton(
+            onPressed: () =&gt; Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () =&gt; Navigator.pop(context, true),
+            child: const Text('تصفير'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) await controller.reset();
+  }
+
+  Future&lt;void&gt; _onTap() async {
+    final wasBelowTarget = !controller.reachedTarget;
+    await controller.increment();
+    // اهتزاز خفيف عند بلوغ الهدف (يعمل على الجهاز الحقيقي، لا على المحاكي غالبًا).
+    if (wasBelowTarget &amp;&amp; controller.reachedTarget) {
+      HapticFeedback.mediumImpact();
+    } else {
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        if (!controller.isLoaded) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final dhikr = controller.current;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('عدّاد الأذكار'),
+            actions: [
+              IconButton(
+                tooltip: 'اختيار ذكر',
+                icon: const Icon(Icons.list_alt),
+                onPressed: () =&gt; Navigator.push(
+                  context,
+                  MaterialPageRoute&lt;void&gt;(
+                    builder: (_) =&gt; DhikrListScreen(controller: controller),
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'تصفير',
+                icon: const Icon(Icons.refresh),
+                onPressed: () =&gt; _confirmReset(context),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    dhikr.text,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Semantics(
+                  // نص يقرؤه قارئ الشاشة (TalkBack / VoiceOver).
+                  label: 'العدد الحالي ${controller.count} من ${dhikr.target}',
+                  child: Text(
+                    '${controller.count}',
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: controller.reachedTarget
+                          ? theme.colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                ),
+                Text('الهدف: ${dhikr.target}',
+                    style: theme.textTheme.bodyLarge),
+                const Spacer(),
+                // زر كبير يملأ عرض الشاشة تقريبًا: هدف اللمس سهل حتى دون النظر.
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 160,
+                    child: FilledButton(
+                      onPressed: _onTap,
+                      child: const Text('سَبِّح', style: TextStyle(fontSize: 32)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+</code></pre>
+<p>شغّل: افتح القائمة، اختر «أَسْتَغْفِرُ الله»، عدّ خمسًا، ارجع إلى القائمة واختر «سُبْحَانَ الله»، عدّ ثلاثًا، ثم عد إلى الاستغفار: يجب أن تجد الخمسة باقية، لأن الحفظ لكل ذكر بمعرّفه. <strong>لقطة Git.</strong></p>
+<p><strong>ما تعلمته:</strong> <code>ListView.separated</code> للقوائم، و<code>Navigator.push/pop</code> للتنقل، وأن الشاشتين تتشاركان المتحكم نفسه فتبقيان متسقتين دون أي كود مزامنة.</p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 7: معالجة الحالات غير المتوقعة</h3>
+<p>عد إلى قائمة الحالات غير المعتادة في نموذج المتطلبات وتحقق من كل واحدة في الكود:</p>
+<table>
+<thead><tr><th>الحالة</th><th>أين عولجت</th><th>كيف تختبرها يدويًا</th></tr></thead>
+<tbody>
+<tr><td>إغلاق مفاجئ أثناء العدّ</td><td>الحفظ بعد كل نقرة في <code>increment</code></td><td>عدّ ثم اسحب التطبيق من قائمة التطبيقات الأخيرة فورًا</td></tr>
+<tr><td>بيانات محفوظة تالفة</td><td><code>try/on FormatException</code> والتحقق من نوع كل قيمة في <code>loadCounts</code></td><td>اختبار الوحدة في المرحلة 8 يحقن نصًا غير صالح</td></tr>
+<tr><td>تصفير بالخطأ</td><td>حوار تأكيد <code>_confirmReset</code></td><td>انقر تصفير ثم «إلغاء»؛ يجب ألا يتغير شيء</td></tr>
+<tr><td>تجاوز الهدف</td><td>يستمر العدّ، <code>reachedTarget</code> يبقى صحيحًا، اللون مميز + اهتزاز عند لحظة البلوغ فقط</td><td>عدّ حتى 33 ثم استمر</td></tr>
+<tr><td>فتح التطبيق قبل اكتمال التحميل</td><td><code>isLoaded</code> يعرض مؤشرًا بدل رقم خاطئ</td><td>لن تلاحظها على جهاز سريع، لكنها تمنع ومضة «0» ثم «57»</td></tr>
+<tr><td>حجم خط النظام كبير جدًا</td><td>الرقم في <code>Column</code> مرن مع <code>Spacer</code>؛ نص الذكر في <code>Padding</code> ويلتف</td><td>إعدادات الهاتف ← حجم الخط ← الأكبر، ثم افتح التطبيق</td></tr>
+<tr><td>قارئ الشاشة</td><td><code>Semantics(label:)</code> على الرقم، و<code>tooltip</code> على الأزرار الأيقونية</td><td>فعّل TalkBack وتنقّل</td></tr>
+</tbody></table>
+<p>لاحظ أن معالجة الحالات غير المعتادة لم تكن «مرحلة إضافية» بقدر ما كانت <em>مراجعة</em>: معظمها بُني في مكانه الطبيعي حين كتبنا كل طبقة. هذا هو الوضع الصحي؛ ما يجب أن تفعله هنا هو التحقق المنهجي لا الترقيع. <strong>لقطة Git.</strong></p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 8: اختبار التطبيق على المحاكي وجهاز حقيقي</h3>
+<p><strong>الاختبارات الآلية أولًا.</strong> لأن المتحكم لا يعرف الواجهة، نختبره مباشرة بمخزن في الذاكرة. <code>test/counter_controller_test.dart</code>:</p>
+<pre><code>import 'package:dhikr_counter/data/counter_store.dart';
+import 'package:dhikr_counter/models/dhikr.dart';
+import 'package:dhikr_counter/state/counter_controller.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  const testAdhkar = [Dhikr(id: 'a', text: 'ذكر أ', target: 3)];
+
+  group('CounterController', () {
+    test('يبدأ من الصفر ويزيد بمقدار واحد', () async {
+      final controller =
+          CounterController(store: InMemoryCounterStore(), adhkar: testAdhkar);
+      await controller.load();
+
+      expect(controller.count, 0);
+      await controller.increment();
+      await controller.increment();
+      expect(controller.count, 2);
+      expect(controller.reachedTarget, isFalse);
+    });
+
+    test('يبلغ الهدف عند العدد المستهدف', () async {
+      final controller =
+          CounterController(store: InMemoryCounterStore(), adhkar: testAdhkar);
+      await controller.load();
+      for (var i = 0; i &lt; 3; i++) {
+        await controller.increment();
+      }
+      expect(controller.reachedTarget, isTrue);
+    });
+
+    test('يستعيد العدد المحفوظ عند إعادة الفتح', () async {
+      final store = InMemoryCounterStore();
+      final first = CounterController(store: store, adhkar: testAdhkar);
+      await first.load();
+      await first.increment();
+
+      // "إعادة فتح التطبيق": متحكم جديد بنفس المخزن.
+      final second = CounterController(store: store, adhkar: testAdhkar);
+      await second.load();
+      expect(second.count, 1);
+    });
+
+    test('التصفير يعيد العدد إلى الصفر ويحفظ', () async {
+      final store = InMemoryCounterStore();
+      final controller = CounterController(store: store, adhkar: testAdhkar);
+      await controller.load();
+      await controller.increment();
+      await controller.reset();
+      expect(controller.count, 0);
+      expect(await store.loadCounts(), isEmpty);
+    });
+  });
+}
+</code></pre>
+<p>اختبار widget واحد يتأكد أن النقر يغيّر ما يُعرض فعلًا، <code>test/counter_screen_test.dart</code>:</p>
+<pre><code>import 'package:dhikr_counter/data/counter_store.dart';
+import 'package:dhikr_counter/screens/counter_screen.dart';
+import 'package:dhikr_counter/state/counter_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('النقر على الزر يزيد الرقم المعروض', (tester) async {
+    final controller = CounterController(store: InMemoryCounterStore());
+    await controller.load();
+
+    await tester.pumpWidget(
+      MaterialApp(home: CounterScreen(controller: controller)),
+    );
+
+    expect(find.text('0'), findsOneWidget);
+    await tester.tap(find.text('سَبِّح'));
+    await tester.pump();
+    expect(find.text('1'), findsOneWidget);
+  });
+}
+</code></pre>
+<p>واختبار لطبقة التخزين الحقيقية ببديل في الذاكرة توفره الحزمة نفسها، وفيه اختبار البيانات التالفة، <code>test/counter_store_test.dart</code> (يحتاج إلى <code>flutter pub add dev:shared_preferences_platform_interface</code>):</p>
+<pre><code>import 'package:dhikr_counter/data/counter_store.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+
+void main() {
+  setUp(() {
+    // نستبدل التخزين الحقيقي بنسخة في الذاكرة داخل الاختبار.
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+  });
+
+  test('يحفظ ويسترجع الأعداد', () async {
+    final store = SharedPrefsCounterStore(SharedPreferencesAsync());
+    await store.saveCounts({'a': 5, 'b': 0});
+    expect(await store.loadCounts(), {'a': 5, 'b': 0});
+  });
+
+  test('يتجاهل البيانات التالفة بدل الانهيار', () async {
+    final prefs = SharedPreferencesAsync();
+    await prefs.setString('dhikr_counts_v1', '{ليس json');
+    final store = SharedPrefsCounterStore(prefs);
+    expect(await store.loadCounts(), isEmpty);
+  });
+}
+</code></pre>
+<pre><code>flutter analyze   <span class="cm"># يجب: No issues found!</span>
+flutter test      <span class="cm"># يجب: All tests passed! (7 اختبارات)</span></code></pre>
+<p><strong>ثم الاختبار اليدوي على جهاز حقيقي</strong> بقائمة ثابتة تعيدها مع كل إصدار: التثبيت من الصفر (حالة فارغة)، العدّ، الاهتزاز عند الهدف (لن تشعر به على المحاكي)، التصفير وإلغاؤه، التبديل بين الأذكار، الإغلاق التام وإعادة الفتح، تدوير الشاشة، أكبر حجم خط، الوضع الداكن، وTalkBack لدقيقة. سجّل ما وجدته في <code>README.md</code>. <strong>لقطة Git.</strong></p>
+<div class="box ai"><span class="bt">مع الذكاء الاصطناعي</span><p>هذه أفضل لحظة لاستخدام برومبت «كتابة اختبار» من الفصل الثامن: أعطِ الأداة <code>CounterController</code> واطلب حالات إضافية لم تخطر لك. ثم لكل اختبار تقترحه اسأل نفسك: هل يختبر سلوكًا يهم المستخدم، أم يختبر أن Dart تعمل؟</p></div>
+</div>
+
+<div class="stage">
+<h3>المرحلة 9: تحسين الواجهة العربية</h3>
+<p>عد إلى <code>main.dart</code>. السطور الثلاثة الخاصة باللغة تفعل الكثير: <code>locale: Locale('ar')</code> يجعل العربية لغة التطبيق، و<code>GlobalMaterialLocalizations.delegates</code> (من حزمة <code>flutter_localizations</code> المدمجة، أضفها بـ <code>flutter pub add flutter_localizations --sdk=flutter</code>) يوفر النصوص العربية لعناصر Material الجاهزة (أزرار الحوارات، tooltips الرجوع) <em>ويقلب اتجاه الواجهة كلها إلى RTL</em>. لاحظ في التطبيق: زر الرجوع في شاشة القائمة صار على اليمين، وعلامة الصح على اليسار، دون أن نكتب سطرًا لذلك.</p>
+<p>قائمة مراجعة عربية لهذا المشروع:</p>
+<ul class="checklist">
+<li>كل نص عربي مكتوب بحركات حيث تهم القراءة (نصوص الأذكار) وبدونها حيث لا تهم (الأزرار) للوضوح.</li>
+<li>الأرقام: قررنا عرضها بالأرقام الغربية (<code>'${controller.count}'</code>) لوضوحها من بعيد. لو أردت الأرقام الهندية فاستخدم <code>NumberFormat.decimalPattern('ar')</code> من حزمة <code>intl</code> واختبر الناتج على الجهاز.</li>
+<li>لا يوجد في هذا المشروع <code>EdgeInsets.only(left:)</code> ولا <code>Alignment.centerLeft</code>؛ استخدمنا <code>symmetric</code> و<code>Directional</code>. راجع كودك بالبحث عن <code>left</code> و<code>right</code>.</li>
+<li>الخط: الخط الافتراضي في Flutter للعربية مقبول لكنه عام. لخط مخصص (مثل خطوط Google العربية) أضف ملفات الخط إلى <code>pubspec.yaml</code> واضبطه في <code>ThemeData.fontFamily</code>. تأكد من رخصة الخط.</li>
+<li>جرّب التطبيق بلغة الجهاز الإنجليزية أيضًا: لأننا ثبّتنا <code>locale</code> على العربية فسيبقى عربيًا، وهذا مقصود في تطبيق عربي. لو أردت لغتين فاحذف <code>locale</code> الثابت واستخدم ملفات ARB كما في وثائق الترجمة.</li>
+</ul>
+<p><strong>لقطة Git.</strong></p>
+</div>
+
+<div class="stage">
+<h3>المرحلة 10: تجهيز إصدار تجريبي</h3>
+<p>ثلاثة أشياء لـ Android يمكنك إتمامها بالكامل على جهازك:</p>
+<p><strong>(أ) الأيقونة والاسم.</strong> اسم التطبيق الظاهر في <code>android/app/src/main/AndroidManifest.xml</code> (<code>android:label</code>) وفي <code>ios/Runner/Info.plist</code> (<code>CFBundleDisplayName</code>). الأيقونة عبر حزمة <code>flutter_launcher_icons</code> من صورة 1024×1024 واحدة.</p>
+<p><strong>(ب) مفتاح الرفع.</strong> أنشئ keystore مرة واحدة واحفظه خارج المشروع وفي نسخة احتياطية:</p>
+<pre><code>keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload</code></pre>
+<p>ثم ملف <code>android/key.properties</code> (وأضفه إلى <code>.gitignore</code> فورًا) واربطه في <code>android/app/build.gradle.kts</code> كما تشرح وثائق Flutter خطوة بخطوة: <span class="url">https://docs.flutter.dev/deployment/android</span></p>
+<p><strong>(ج) رقم الإصدار والبناء.</strong> في <code>pubspec.yaml</code>: <code>version: 0.1.0+1</code>. ثم:</p>
+<pre><code>flutter build appbundle --release
+<span class="cm"># الناتج: build/app/outputs/bundle/release/app-release.aab</span>
+flutter build apk --release --split-per-abi
+<span class="cm"># ملفات APK لإرسالها مباشرة لمختبرين خارج المتجر</span></code></pre>
+<p>ثبّت نسخة الإصدار على هاتفك واختبرها بالقائمة اليدوية نفسها؛ وضع release قد يكشف ما لا يظهر في debug. ثم ارفع الـ aab إلى مسار <strong>الاختبار الداخلي</strong> في Play Console وأضف زملاءك بعناوين بريدهم. اقرأ تقرير ما قبل الإطلاق حين يصدر.</p>
+<p><strong>لـ iOS</strong> اتبع الفصل الخامس: مستودع GitHub ← Codemagic ← مفتاح App Store Connect ← بناء ورفع إلى TestFlight ← زميل يملك iPhone. قبل البناء الأول راجع <code>ios/Runner/Info.plist</code>: هذا التطبيق لا يستخدم أي إذن فلا نصوص شرح مطلوبة، لكن تطبيق الفواتير سيحتاج إلى <code>NSCameraUsageDescription</code> و<code>NSPhotoLibraryUsageDescription</code>.</p>
+<p><strong>وسم الإصدار:</strong> <code>git tag v0.1.0 && git push --tags</code>. وسجّل في <code>CHANGELOG.md</code> ما يتضمنه.</p>
+</div>
+
+<h2>ما بعد الإصدار التجريبي: مراحل لاحقة</h2>
+<p>الآن، وفقط الآن، افتح قائمة «مؤجّل». كل بند فيها يمكن أن يصبح إصدارًا صغيرًا بالمنهج نفسه (متطلب ← رسم ← كود ← اختبار ← لقطة):</p>
+<ul>
+  <li><strong>الإحصاءات</strong> (v0.2): تتطلب حفظ <em>تاريخ</em> كل جلسة عدّ لا العدد الحالي فقط. هذا تغيير في صيغة التخزين، فهو أول ترحيل بيانات ستكتبه. ربما يستدعي الانتقال إلى SQLite.</li>
+  <li><strong>التنبيهات</strong> (v0.3): إشعار محلي يومي لأذكار الصباح والمساء عبر <code>flutter_local_notifications</code>. يجلب معه أول إذن (الإشعارات) وأول اختلاف حقيقي بين المنصتين.</li>
+  <li><strong>العدّ بطرق متعددة</strong> (v0.4): النقر على أي مكان في الشاشة، أو زر خفض الصوت (يتطلب كودًا أصليًا عبر platform channel على كل منصة، وهو مدخل جيد لفهم «الجسر»).</li>
+  <li><strong>أذكار مخصصة</strong>: إضافة وتعديل وحذف؛ يجلب التحقق من المدخلات ونماذج الإدخال.</li>
+  <li><strong>التصدير والاستيراد</strong>: ملف JSON عبر ورقة المشاركة؛ أول تعامل مع الملفات.</li>
+</ul>
+<p>لاحظ كيف تفتح كل ميزة بابًا واحدًا جديدًا من مفاهيم الفصل السابع. هذا ليس صدفة؛ هكذا يتعلم المطوّرون فعلًا: ميزة تجلب مفهومًا، لا فصل نظري يجلب عشرة.</p>
+
+<div class="box tip"><span class="bt">لماذا لا نضيف كل شيء في اليوم الأول؟</span><p>لأن كل مرحلة أعلاه كشفت قرارًا لم يكن ليتضح قبلها: المعرّف الثابت في النموذج لم يكن ليخطر لنا لولا التفكير في القائمة، والحفظ بعد كل نقرة لم يكن ليتضح لولا سؤال «ماذا لو أُغلق فجأة»، والمخزن المجرّد أثبت قيمته في الاختبار. لو كتبنا كل شيء معًا لاتخذنا هذه القرارات بالخطأ ودفعنا ثمنها في إعادة الكتابة. الصغير الذي يعمل يعلّمك أكثر من الكبير الذي لا يعمل.</p></div>
