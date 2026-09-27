@@ -117,7 +117,6 @@ reader_page = f"""<!doctype html>
 <aside class="side" id="side">
   <p class="brand">من الفكرة إلى المتجر<small>دليل تطوير تطبيقات الهاتف بمساعدة الذكاء الاصطناعي</small></p>
   <div class="progress"><i id="prog"></i></div>
-  <a class="pdf" href="mobile-app-dev-guide-ar.pdf" download>⬇ تنزيل نسخة PDF (112 صفحة)</a>
   <nav><ol>{''.join(nav_items)}</ol></nav>
 </aside>
 <main class="reader" id="main">
@@ -175,7 +174,8 @@ print(f'reader pages: {len(sections)}')
 
 
 if '--pdf' in sys.argv:
-    out = DOCS / 'mobile-app-dev-guide-ar.pdf'
+    out = ROOT.parent / 'build' / 'mobile-app-dev-guide-ar.pdf'
+    out.parent.mkdir(exist_ok=True)
     r = subprocess.run(['weasyprint', str(DOCS / 'print.html'), str(out)], capture_output=True, text=True)
     warn = [l for l in r.stderr.splitlines() if 'unicode-bidi' not in l and l.strip()]
     print('\n'.join(warn[:20]))

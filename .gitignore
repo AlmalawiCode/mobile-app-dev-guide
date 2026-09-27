@@ -8,3 +8,4 @@ example_dhikr_counter/.idea/
 example_dhikr_counter/pubspec.lock
 __pycache__/
 *.pyc
+build/

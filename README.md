@@ -4,7 +4,7 @@
 **دون امتلاك جهاز Mac**، مع استخدام أدوات الذكاء الاصطناعي بوصفها مساعدًا لا بديلًا عن الفهم.
 
 - **اقرأه على الويب:** فصل واحد في كل مرة مع شريط محتويات → `docs/index.html` (منشور عبر GitHub Pages).
-- **نسخة PDF:** `docs/mobile-app-dev-guide-ar.pdf` (112 صفحة، A4).
+- **نسخة PDF (اختيارية، تُبنى محليًا):** `python3 src/build.py --pdf` ينتجها في `build/`.
 - **المشروع النموذجي:** `example_dhikr_counter/` — تطبيق عدّاد الأذكار الذي يُبنى خطوة خطوة في الفصل التاسع (يجتاز `flutter analyze` و`flutter test`).
 
 ## المحتويات
@@ -29,7 +29,8 @@
 
 ```bash
 pip install weasyprint          # لإنتاج PDF
-python3 src/build.py --pdf      # يولّد docs/index.html و docs/print.html و docs/mobile-app-dev-guide-ar.pdf
+python3 src/build.py            # يولّد docs/index.html (الموقع)
+python3 src/build.py --pdf      # إضافةً إلى build/mobile-app-dev-guide-ar.pdf
 ```
 
 المصدر في `src/parts/*.html` (ملف لكل فصل)، والأنماط في `docs/style.css` (طباعة) و`docs/reader.css` (ويب).
